@@ -6,8 +6,9 @@ NemoClaw is a high-performance AI agentic router designed for autonomous custome
 ---
 
 ## 🚀 Key Features
-- **Omnichannel Routing**: Seamlessly handles Telegram, WhatsApp, and Webhooks.
-- **NVIDIA NIM Integration**: Offloads heavy LLM inference for blazing fast response times.
+- **Omnichannel Routing**: Seamlessly handles Telegram, WhatsApp, and> [!IMPORTANT]
+> - **NVIDIA NIM Model**: We will use `meta/llama-3.3-70b-instruct` (latest high-performance engine).
+> - **Standalone Mode**: Confirmed that NemoClaw has NO dependency on the Ralphé ecosystem.
 - **OpenShell Sandbox**: Safely executes dynamic tool-calling and code generation.
 - **Green-Ops CI/CD**: Standalone GitHub Actions for continuous linting, security scanning (`bandit`), and zero-downtime VPS deployment.
 
