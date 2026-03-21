@@ -25,7 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-gate
     steps:
-      - name: Checkout Code
+      - name: Create Target Directory
+        run: ssh -o StrictHostKeyChecking=no ${{ vars.VPS_USER }}@${{ vars.VPS_HOST }} "mkdir -p /opt/nemoclaw"
+
+      - name: SCP - Sync Project to VPS
         uses: actions/checkout@v4
 
       - name: Config Push via SCP
