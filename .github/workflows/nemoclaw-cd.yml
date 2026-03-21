@@ -28,6 +28,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Pre-Transfer Cleanup
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER || 'deploy' }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            sudo rm -rf /opt/nemoclaw
+            sudo mkdir -p /opt/nemoclaw
+            sudo chown -R $(whoami):$(whoami) /opt/nemoclaw
+
       - name: Deploy to VPS
         uses: appleboy/scp-action@master
         with:
@@ -36,7 +47,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
           target: "/opt/nemoclaw"
-          rm: true
+          rm: false # Handled by Pre-Transfer Cleanup
 
       - name: Hot-Swap via SSH
         uses: appleboy/ssh-action@master
