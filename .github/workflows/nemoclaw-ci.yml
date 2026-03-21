@@ -4,16 +4,14 @@ on:
   push:
     branches: [ "master" ]
     paths:
-      - 'nemoclaw/**'
+      - '**'
       - '.github/workflows/nemoclaw-ci.yml'
   pull_request:
     branches: [ "master" ]
     paths:
-      - 'nemoclaw/**'
+      - '**'
 
-defaults:
-  run:
-    working-directory: nemoclaw
+# Standalone Repo - Root Working Directory
 
 jobs:
   lint-and-scan:
