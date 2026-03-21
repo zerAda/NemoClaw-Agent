@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via SCP
+      - name: Deploy to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ vars.VPS_HOST }}
@@ -46,8 +46,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           timeout: 5m
           script: |
-            sudo mkdir -p /opt/nemoclaw
-            sudo chown -R $(whoami):$(whoami) /opt/nemoclaw || true
             cd /opt/nemoclaw
             docker compose pull || true
             docker compose up -d --remove-orphans
