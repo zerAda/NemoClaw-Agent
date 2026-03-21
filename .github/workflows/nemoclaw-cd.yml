@@ -25,27 +25,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-gate
     steps:
-      - name: Create Target Directory
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER || 'deploy' }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: "mkdir -p /opt/nemoclaw"
-
-      - name: SCP - Sync Project to VPS
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Config Push via SCP
+      - name: Deploy via SCP
         uses: appleboy/scp-action@master
         with:
           host: ${{ vars.VPS_HOST }}
           username: ${{ vars.VPS_USER || 'deploy' }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "."
           target: "/opt/nemoclaw"
+          rm: true
           overwrite: true
-          timeout: 3m
 
       - name: Hot-Swap via SSH
         uses: appleboy/ssh-action@master
