@@ -67,7 +67,7 @@ jobs:
             echo "Waiting for container to stabilize..."
             sleep 10
             docker compose ps
-            docker compose logs --tail=20
+            docker logs openclaw --tail=20
             echo "Container status:"
             docker compose ps
             docker image prune -f --filter "until=24h"

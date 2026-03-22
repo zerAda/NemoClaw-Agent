@@ -1,6 +1,7 @@
 services:
   nemoclaw:
     image: ghcr.io/openclaw/openclaw:latest # Official OpenClaw image
+    container_name: openclaw
     restart: unless-stopped
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
