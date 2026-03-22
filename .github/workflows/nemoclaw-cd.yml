@@ -59,9 +59,13 @@ jobs:
           script: |
             cd /opt/nemoclaw
             docker network inspect traefik-net >/dev/null 2>&1 || docker network create traefik-net
-            docker compose pull --quiet || true
-            echo "Starting containers..."
-            docker compose up -d --remove-orphans
+            docker compose pull --quiet
+            docker compose down --remove-orphans
+            docker compose up -d --force-recreate
+            echo "Waiting for container to stabilize..."
+            sleep 10
+            docker compose ps
+            docker compose logs --tail=20
             echo "Container status:"
             docker compose ps
             docker image prune -f --filter "until=24h"
