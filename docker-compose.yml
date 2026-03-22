@@ -1,18 +1,47 @@
 services:
   nemoclaw:
-    image: ghcr.io/openclaw/openclaw:latest # Official OpenClaw image
+    image: ghcr.io/openclaw/openclaw:latest
     container_name: openclaw
     restart: unless-stopped
     environment:
+      # === AI Model Configuration ===
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - NEMO_ROUTING_MODE=cloud
+      - GOOGLE_API_KEY=${GEMINI_API_KEY}
       - MODEL_ID=gemini-1.5-flash
       - BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
-      - LOG_LEVEL=DEBUG
+      # === Telegram Gateway ===
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      # === OpenClaw Core ===
+      - NEMO_ROUTING_MODE=cloud
       - NEMO_EXEMPT_SANDBOX=true
       - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
       - NEMO_PAIRING_CODE=${NEMO_PAIRING_CODE}
+      # === Advanced: Logging & Debugging ===
+      - LOG_LEVEL=INFO
+      - OPENCLAW_LOG_LEVEL=info
+      # === Advanced: Agent Identity ===
+      - OPENCLAW_AGENT_IDENTITY=/app/agent.md
+      # === Advanced: Workspace & Memory ===
+      - OPENCLAW_WORKSPACE=/app/workspace
+    volumes:
+      # Persistent workspace — survives container restarts
+      - openclaw-workspace:/app/workspace
+      # Persistent brain/memory — application history & learning
+      - ./brain:/app/brain
+      # Agent identity file
+      - ./agent.md:/app/agent.md:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     networks:
       - traefik-net
     labels:
@@ -20,7 +49,10 @@ services:
       - "traefik.http.routers.nemoclaw.rule=Host(`nemoclaw.resto-bot.com`)"
       - "traefik.http.routers.nemoclaw.entrypoints=websecure"
       - "traefik.http.routers.nemoclaw.tls.certresolver=letsencrypt"
-      - "traefik.http.services.nemoclaw.loadbalancer.server.port=8080" # internal agent UI/API
+      - "traefik.http.services.nemoclaw.loadbalancer.server.port=8080"
+
+volumes:
+  openclaw-workspace:
 
 networks:
   traefik-net:
