@@ -58,6 +58,8 @@ jobs:
           timeout: 5m
           script: |
             cd /opt/nemoclaw
+            # Explicitly sync secrets to .env
+            sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" .env || echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
             docker network inspect traefik-net >/dev/null 2>&1 || docker network create traefik-net
             docker compose pull --quiet
             docker compose down --remove-orphans
