@@ -32,43 +32,73 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER || 'deploy' }}
+          username: ${{ vars.VPS_USER || 'root' }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             mkdir -p /opt/nemoclaw
             rm -rf /opt/nemoclaw/* || true
-            chown -R $(whoami):$(whoami) /opt/nemoclaw
 
       - name: Deploy to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER || 'deploy' }}
+          username: ${{ vars.VPS_USER || 'root' }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
           target: "/opt/nemoclaw"
-          rm: false # Handled by Pre-Transfer Cleanup
+          rm: false
 
       - name: Hot-Swap via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER || 'deploy' }}
+          username: ${{ vars.VPS_USER || 'root' }}
           key: ${{ secrets.VPS_SSH_KEY }}
           timeout: 5m
           script: |
+            set -e
             cd /opt/nemoclaw
-            # Explicitly sync secrets to .env
+
+            # === Explicit Secret Sync ===
             sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" .env || echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
-            docker network inspect traefik-net >/dev/null 2>&1 || docker network create traefik-net
-            docker compose pull --quiet
+
+            # === Network Setup ===
+            docker network inspect traefik-net > /dev/null 2>&1 || docker network create traefik-net
+
+            # === Full Container Cleanup & Restart ===
             docker compose down -v --remove-orphans
+            docker compose pull --quiet
             docker compose up -d --force-recreate
+
             echo "Waiting for container to stabilize..."
-            sleep 10
+            sleep 15
+
+            # === Full Diagnostic Report ===
+            echo "============================================"
+            echo "          NEMOCLAW DIAGNOSTIC REPORT"
+            echo "============================================"
+            echo "--- Container Status ---"
             docker compose ps
-            docker logs openclaw --tail=20
-            echo "Container status:"
-            docker compose ps
-            docker image prune -f --filter "until=24h"
+            echo "--- Active Containers ---"
+            docker ps -a | grep openclaw || echo "WARNING: No openclaw container found!"
+            echo "--- Container Logs (last 50 lines) ---"
+            docker logs openclaw --tail=50 2>&1 || echo "WARNING: Could not get logs"
+            echo "--- Environment Variables in Container ---"
+            docker exec openclaw env | grep -E "(MODEL|BASE_URL|GEMINI|TELEGRAM|NEMO)" 2>&1 || echo "WARNING: Could not inspect env"
+            echo "--- Bot Health Check ---"
+            curl -s http://localhost:8080/health 2>&1 || echo "INFO: Health endpoint not available"
+            echo "--- Disk Usage ---"
+            df -h /opt
+            echo "--- .env file (redacted) ---"
+            cat .env | sed 's/=.*/=***REDACTED***/g'
+            echo "============================================"
             echo "NemoClaw Deployment Verified"
+
+      - name: Image Cleanup
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER || 'root' }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            docker image prune -f --filter "until=24h"
