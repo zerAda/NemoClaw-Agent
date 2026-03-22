@@ -6,7 +6,7 @@ services:
       - NVIDIA_API_KEY=${NVIDIA_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - NEMO_ROUTING_MODE=cloud
-      - MODEL_ID=meta/llama-3.3-70b-instruct
+      - MODEL_ID=meta/llama-3-70b-instruct
       - BASE_URL=https://integrate.api.nvidia.com/v1
       - LOG_LEVEL=DEBUG
       - NEMO_EXEMPT_SANDBOX=true
