@@ -3,11 +3,11 @@ services:
     image: ghcr.io/openclaw/openclaw:latest # Official OpenClaw image
     restart: unless-stopped
     environment:
-      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - NEMO_ROUTING_MODE=cloud
-      - MODEL_ID=meta/llama-3-70b-instruct
-      - BASE_URL=https://integrate.api.nvidia.com/v1
+      - MODEL_ID=gpt-4o-mini
+      - BASE_URL=https://api.openai.com/v1
       - LOG_LEVEL=DEBUG
       - NEMO_EXEMPT_SANDBOX=true
       - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
