@@ -58,8 +58,11 @@ jobs:
           timeout: 5m
           script: |
             cd /opt/nemoclaw
-            docker network create traefik-net || true
-            docker compose pull || true
+            docker network inspect traefik-net >/dev/null 2>&1 || docker network create traefik-net
+            docker compose pull --quiet || true
+            echo "Starting containers..."
             docker compose up -d --remove-orphans
-            docker image prune -a -f --filter "until=24h"
+            echo "Container status:"
+            docker compose ps
+            docker image prune -f --filter "until=24h"
             echo "NemoClaw Deployment Verified"
