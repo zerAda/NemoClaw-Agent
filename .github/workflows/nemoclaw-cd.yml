@@ -58,6 +58,7 @@ jobs:
           timeout: 5m
           script: |
             cd /opt/nemoclaw
+            docker network create traefik-net || true
             docker compose pull || true
             docker compose up -d --remove-orphans
             docker image prune -a -f --filter "until=24h"
