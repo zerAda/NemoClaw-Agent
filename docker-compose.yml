@@ -10,6 +10,8 @@ services:
       - BASE_URL=https://integrate.api.nvidia.com/v1
       - LOG_LEVEL=DEBUG
       - NEMO_EXEMPT_SANDBOX=true
+      - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
+      - NEMO_PAIRING_CODE=${NEMO_PAIRING_CODE}
     networks:
       - traefik-net
     labels:
