@@ -119,17 +119,62 @@
 
 ## Traceability
 
-*(Populated by roadmapper — empty until ROADMAP.md is created)*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Pending |
+| INFRA-05 | Phase 2 | Pending |
+| SCRAPE-01 | Phase 2 | Pending |
+| SCRAPE-04 | Phase 2 | Pending |
+| SCRAPE-05 | Phase 2 | Pending |
+| SCRAPE-06 | Phase 2 | Pending |
+| SCRAPE-07 | Phase 2 | Pending |
+| SCORE-01 | Phase 3 | Pending |
+| SCORE-02 | Phase 3 | Pending |
+| SCORE-03 | Phase 3 | Pending |
+| SCORE-04 | Phase 3 | Pending |
+| TELE-01 | Phase 4 | Pending |
+| TELE-02 | Phase 4 | Pending |
+| TELE-03 | Phase 4 | Pending |
+| TELE-04 | Phase 4 | Pending |
+| TELE-05 | Phase 4 | Pending |
+| TELE-06 | Phase 4 | Pending |
+| TRACK-01 | Phase 5 | Pending |
+| TRACK-02 | Phase 5 | Pending |
+| TRACK-03 | Phase 5 | Pending |
+| TRACK-04 | Phase 5 | Pending |
+| TRACK-05 | Phase 5 | Pending |
+| SUBMIT-06 | Phase 5 | Pending |
+| SCRAPE-02 | Phase 6 | Pending |
+| SCRAPE-03 | Phase 6 | Pending |
+| APPLY-01 | Phase 7 | Pending |
+| APPLY-02 | Phase 7 | Pending |
+| APPLY-03 | Phase 7 | Pending |
+| APPLY-04 | Phase 7 | Pending |
+| APPLY-05 | Phase 7 | Pending |
+| SUBMIT-01 | Phase 8 | Pending |
+| SUBMIT-02 | Phase 8 | Pending |
+| SUBMIT-03 | Phase 8 | Pending |
+| SUBMIT-04 | Phase 8 | Pending |
+| SUBMIT-05 | Phase 8 | Pending |
+| LEGAL-01 | Phase 8 | Pending |
+| LEGAL-02 | Phase 8 | Pending |
+| LEGAL-03 | Phase 8 | Pending |
+| FOLLOW-01 | Phase 9 | Pending |
+| FOLLOW-02 | Phase 9 | Pending |
+| FOLLOW-03 | Phase 9 | Pending |
+| FOLLOW-04 | Phase 9 | Pending |
+| NEGO-01 | Phase 9 | Pending |
+| NEGO-02 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 41 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 41 ⚠️
+- v1 requirements: 48 total (note: REQUIREMENTS.md footer previously said 41 — actual count by enumeration is 48)
+- Mapped to phases: 48
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-23 after roadmap creation — traceability table populated*
