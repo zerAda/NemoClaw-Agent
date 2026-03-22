@@ -3,11 +3,11 @@ services:
     image: ghcr.io/openclaw/openclaw:latest # Official OpenClaw image
     restart: unless-stopped
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - NEMO_ROUTING_MODE=cloud
-      - MODEL_ID=gpt-4o-mini
-      - BASE_URL=https://api.openai.com/v1
+      - MODEL_ID=gemini-1.5-flash
+      - BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
       - LOG_LEVEL=DEBUG
       - NEMO_EXEMPT_SANDBOX=true
       - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
