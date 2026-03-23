@@ -23,6 +23,8 @@ services:
       - OPENCLAW_AGENT_IDENTITY=/app/agent.md
       # === Advanced: Workspace & Memory ===
       - OPENCLAW_WORKSPACE=/app/workspace
+      # === Skills Path ===
+      - OPENCLAW_SKILLS_PATH=/app/skills
     volumes:
       # Persistent workspace — survives container restarts
       - openclaw-workspace:/app/workspace
@@ -30,6 +32,8 @@ services:
       - ./brain:/app/brain
       # Agent identity file
       - ./agent.md:/app/agent.md:ro
+      # Skills definitions (read-only)
+      - ./skills:/app/skills:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health" ]
       interval: 30s
@@ -50,6 +54,33 @@ services:
       - "traefik.http.routers.nemoclaw.entrypoints=websecure"
       - "traefik.http.routers.nemoclaw.tls.certresolver=letsencrypt"
       - "traefik.http.services.nemoclaw.loadbalancer.server.port=8080"
+
+  career-agent:
+    build: ./career_agent
+    container_name: career-agent
+    restart: unless-stopped
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${NEMO_AUTH_USER_ID}
+      - BRAIN_PATH=/app/brain
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./brain:/app/brain
+    networks:
+      - traefik-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
 
 volumes:
   openclaw-workspace:
