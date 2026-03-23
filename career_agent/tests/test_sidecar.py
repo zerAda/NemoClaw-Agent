@@ -5,8 +5,12 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client(mock_phoenix_app):
-    """TestClient with PhoenixApp mocked out — no real Playwright/Gemini/Qdrant."""
-    with patch("career_agent.sidecar.main._phoenix", mock_phoenix_app):
+    """TestClient with PhoenixApp mocked out — no real Playwright/Gemini/Qdrant.
+
+    Patches PhoenixApp class in sidecar.main so the lifespan receives the mock
+    instead of trying to construct a real instance (which requires brain files).
+    """
+    with patch("career_agent.sidecar.main.PhoenixApp", return_value=mock_phoenix_app):
         from career_agent.sidecar.main import app
         with TestClient(app, raise_server_exceptions=True) as c:
             yield c
