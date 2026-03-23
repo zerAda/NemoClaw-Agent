@@ -4,7 +4,11 @@ import logging
 import yaml
 import os
 from playwright.async_api import async_playwright
-from playwright_stealth import stealth_async
+try:
+    from playwright_stealth import stealth_async
+except ImportError:
+    # playwright_stealth v2 renamed stealth_async → stealth
+    from playwright_stealth import stealth as stealth_async
 
 logger = logging.getLogger(__name__)
 
