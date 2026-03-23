@@ -70,7 +70,12 @@ Plans:
   2. A job listing passing the exclusion check is scored by Gemini and receives a numeric score, a recommendation (APPLY/SKIP/TAILOR_REQUIRED), and a reasoning string
   3. Jobs scoring below the scoring_threshold (default 0.85) are marked SKIPPED and not queued for application
   4. Score, recommendation, and reasoning are persisted per job record and visible in the pipeline state
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0: Extend models.py with ScoreRecord + MatchReport.reasoning; scaffold test_hunter.py stubs
+- [ ] 03-02-PLAN.md — Rewrite HunterService: brain_path injection, JobListing input, fast-fail, gemini-2.5-flash, ScoreRecord output, activate tests
+- [ ] 03-03-PLAN.md — Wire scoring into app.py: process_job accepts JobListing, persists ScoreRecord fields, SKIP gate
 
 ### Phase 4: Telegram Interface and Autonomous Scheduling
 **Goal**: The user has full visibility and control over NemoClaw via Telegram — daily digests arrive automatically, real-time alerts fire on significant events, and commands (/status, /pause, /resume, /cycle) work reliably — and the autonomous daily cycle runs on a cron schedule without user intervention
@@ -151,7 +156,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 |-------|----------------|--------|-----------|
 | 1. Sidecar Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Stealth Layer and Scraping Foundation | 0/5 | Not started | - |
-| 3. Scoring Pipeline | 0/TBD | Not started | - |
+| 3. Scoring Pipeline | 0/3 | Not started | - |
 | 4. Telegram Interface and Autonomous Scheduling | 0/TBD | Not started | - |
 | 5. Deduplication Hardening and Application State Machine | 0/TBD | Not started | - |
 | 6. Multi-Platform Scraping Expansion | 0/TBD | Not started | - |
