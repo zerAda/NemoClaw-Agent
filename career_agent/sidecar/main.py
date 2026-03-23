@@ -1,3 +1,12 @@
+"""
+Career Agent sidecar — FastAPI HTTP boundary for PhoenixApp.
+
+Import note: `from src.app import PhoenixApp` uses an absolute import that
+works in the container where WORKDIR=/app and sidecar/ & src/ are siblings.
+The career_agent/conftest.py adds career_agent/ to sys.path for local tests.
+Do NOT change to `from career_agent.src.app import PhoenixApp` — that path
+does not exist inside the Docker container.
+"""
 import os
 import logging
 from contextlib import asynccontextmanager
@@ -6,7 +15,7 @@ from typing import Optional
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 
-from src.app import PhoenixApp  # noqa: E402 — container: sidecar/ and src/ are siblings under /app
+from src.app import PhoenixApp  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
