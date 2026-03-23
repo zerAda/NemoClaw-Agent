@@ -1,0 +1,11 @@
+linkedin:
+  job_card: ".base-card"
+  job_title: ".base-search-card__title"
+  job_url: "a"
+  job_description: ".description__text"
+
+indeed:
+  job_card: ".job_seen_beacon"
+  job_title: "h2.jobTitle"
+  job_url: "a[data-jk]"
+  job_description: "#jobDescriptionText"

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Secrets & environment
+.env
+*.env
+
+# Qdrant local DB
+qdrant_db/
+
+# Playwright browser cache
+.playwright/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GSD / Claude
+.claude/

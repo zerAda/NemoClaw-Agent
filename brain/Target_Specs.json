@@ -1,0 +1,12 @@
+{
+  "target_roles": ["Senior AI Engineer", "Full Stack Developer (Next.js/Python)"],
+  "location_preference": "Remote / Paris, France",
+  "salary_range": {
+    "min": 70000,
+    "max": 100000,
+    "currency": "EUR"
+  },
+  "industries": ["AI & Machine Learning", "FinTech", "HealthTech"],
+  "keywords": ["Generative AI", "LLM", "Docker", "Python", "React"],
+  "scoring_threshold": 0.85
+}
