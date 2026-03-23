@@ -8,5 +8,6 @@
   },
   "industries": ["AI & Machine Learning", "FinTech", "HealthTech"],
   "keywords": ["Generative AI", "LLM", "Docker", "Python", "React"],
-  "scoring_threshold": 0.85
+  "scoring_threshold": 0.85,
+  "exclusions": ["stage", "alternance", "apprentissage", "internship", "unpaid", "agency", "staffing", "recruiting firm"]
 }

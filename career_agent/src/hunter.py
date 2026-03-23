@@ -57,7 +57,7 @@ class HunterService:
         
         logger.info("Generating Match Report via Gemini (Centralized Client)...")
         response = await self.client.chat.completions.create(
-            model="gemini-2.5-flash",
+            model=os.getenv("MODEL_ID", "gemini-1.5-flash"),
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )

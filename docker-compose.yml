@@ -47,6 +47,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - BRAIN_PATH=/app/brain
+      - MODEL_ID=gemini-1.5-flash
       - LOG_LEVEL=INFO
     volumes:
       - ./brain:/app/brain

@@ -1,13 +1,12 @@
 import logging
 import os
+import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from datetime import datetime
 from typing import List, Dict
 
 logger = logging.getLogger(__name__)
-
-import uuid
 
 class MemoryService:
     """The Memory module: Persistent tracking using Qdrant."""
