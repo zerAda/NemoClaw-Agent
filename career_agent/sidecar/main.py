@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 
-from src.app import PhoenixApp
+from src.app import PhoenixApp  # noqa: E402 — container: sidecar/ and src/ are siblings under /app
 
 logging.basicConfig(
     level=logging.INFO,
