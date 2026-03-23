@@ -12,7 +12,7 @@ NemoClaw Job Hunter transforms an existing Telegram bot and career agent toolset
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Sidecar Foundation** - Wrap career_agent in FastAPI sidecar, wire OpenClaw skill integration, share brain volume, extend CI/CD
+- [x] **Phase 1: Sidecar Foundation** - Wrap career_agent in FastAPI sidecar, wire OpenClaw skill integration, share brain volume, extend CI/CD (completed 2026-03-23)
 - [ ] **Phase 2: Stealth Layer and Scraping Foundation** - Replace playwright-stealth with patchright, integrate France Travail OAuth2 API, add LinkedIn scraping, enforce rate limits and loud-fail alerting
 - [ ] **Phase 3: Scoring Pipeline** - Upgrade to gemini-2.5-flash, run fast-fail exclusion, score all listings against Bio_Context and Target_Specs, persist score records
 - [ ] **Phase 4: Telegram Interface and Autonomous Scheduling** - Daily digest, real-time alerts, /status /pause /resume /cycle commands, APScheduler cron cycle inside sidecar lifespan
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sidecar Foundation | 3/5 | In Progress|  |
+| 1. Sidecar Foundation | 5/5 | Complete   | 2026-03-23 |
 | 2. Stealth Layer and Scraping Foundation | 0/TBD | Not started | - |
 | 3. Scoring Pipeline | 0/TBD | Not started | - |
 | 4. Telegram Interface and Autonomous Scheduling | 0/TBD | Not started | - |
