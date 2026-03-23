@@ -1,7 +1,7 @@
 import asyncio
 import os
 import logging
-from typing import List
+from typing import Dict, List
 
 from .hunter import HunterService
 from .tailor import TailorService
