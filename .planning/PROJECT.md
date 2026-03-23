@@ -12,7 +12,11 @@ NemoClaw must autonomously get the user to job interviews — from finding listi
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] FastAPI sidecar (`/health`, `/run-cycle`) containerized and running healthy on VPS — Validated in Phase 01: sidecar-foundation
+- [x] OpenClaw skill (`skills/career_agent/SKILL.md`) registered and mounted — Validated in Phase 01: sidecar-foundation
+- [x] MemoryService uses `BRAIN_PATH` env var for shared brain volume — Validated in Phase 01: sidecar-foundation
+- [x] CI installs `career_agent/requirements.txt` (flake8 resolves all imports) — Validated in Phase 01: sidecar-foundation
+- [x] All model IDs upgraded to `gemini-2.5-flash` — Validated in Phase 01: sidecar-foundation
 
 ### Active
 
