@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 01-sidecar-foundation/01-02-PLAN.md
+last_updated: "2026-03-23T10:12:57.317Z"
+progress:
+  total_phases: 9
+  completed_phases: 0
+  total_plans: 5
+  completed_plans: 1
+---
+
 # Project State
 
 ## Project Reference
@@ -5,20 +19,17 @@
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** NemoClaw must autonomously get the user to job interviews — from finding listings to submitted applications to tracked follow-ups — with zero manual effort required.
-**Current focus:** Phase 1 - Sidecar Foundation
+**Current focus:** Phase 01 — sidecar-foundation
 
 ## Current Position
 
-Phase: 1 of 9 (Sidecar Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-23 — Roadmap created, all 48 v1 requirements mapped across 9 phases
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 01 (sidecar-foundation) — EXECUTING
+Plan: 1 of 5
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: — min
 - Total execution time: 0 hours
@@ -30,10 +41,12 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: —
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-sidecar-foundation P02 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -46,6 +59,7 @@ Recent decisions affecting current work:
 - Reuse career_agent/ as tool layer: extend don't rewrite
 - Fully autonomous apply (no approval gate): user chose full autonomy
 - Gemini as LLM: already integrated in both components
+- [Phase 01-sidecar-foundation]: BRAIN_PATH env var resolves Qdrant DB path; brain_path arg takes priority for test isolation; default /app/brain matches docker-compose volume mount
 
 ### Pending Todos
 
@@ -59,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23
-Stopped at: Roadmap created and written to .planning/ROADMAP.md
+Last session: 2026-03-23T10:12:57.313Z
+Stopped at: Completed 01-sidecar-foundation/01-02-PLAN.md
 Resume file: None

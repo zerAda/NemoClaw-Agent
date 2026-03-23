@@ -33,7 +33,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The sidecar container starts alongside the OpenClaw container via docker compose up and both containers can read and write to ./brain/
   3. A push to master triggers the existing GitHub Actions pipeline, which lints, runs SAST, and deploys the sidecar alongside OpenClaw to the VPS without manual steps
   4. All Gemini model references across career_agent and NemoClaw resolve to gemini-2.5-flash (no 1.5-* strings remain)
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Test scaffold: requirements.txt + pytest stubs for INFRA-01/02/03
+- [ ] 01-02-PLAN.md — Gemini model ID upgrade to gemini-2.5-flash + MemoryService BRAIN_PATH fix
+- [ ] 01-03-PLAN.md — FastAPI sidecar (career_agent/sidecar/main.py) + Dockerfile
+- [ ] 01-04-PLAN.md — docker-compose.yml career-agent service + .env.example
+- [ ] 01-05-PLAN.md — SKILL.md + agent.md skill reference + CI requirements install
 
 ### Phase 2: Stealth Layer and Scraping Foundation
 **Goal**: The scraper operates without playwright-stealth, survives 2026-era bot detection, and retrieves real job listings from France Travail (via API) and LinkedIn (via patchright) with rate limiting enforced and failures surfaced as Telegram alerts
@@ -135,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sidecar Foundation | 0/TBD | Not started | - |
+| 1. Sidecar Foundation | 1/5 | In Progress|  |
 | 2. Stealth Layer and Scraping Foundation | 0/TBD | Not started | - |
 | 3. Scoring Pipeline | 0/TBD | Not started | - |
 | 4. Telegram Interface and Autonomous Scheduling | 0/TBD | Not started | - |

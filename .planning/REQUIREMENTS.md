@@ -9,10 +9,10 @@
 
 - [ ] **INFRA-01**: career_agent/ Python module is wrapped in a FastAPI sidecar service deployable as a second Docker Compose service alongside the OpenClaw container
 - [ ] **INFRA-02**: NemoClaw (OpenClaw LLM) can invoke career_agent capabilities via HTTP skill endpoint (SKILL.md + /tools/invoke)
-- [ ] **INFRA-03**: Sidecar and OpenClaw container share the ./brain volume (Bio_Context.md, Target_Specs.json, qdrant_db)
+- [x] **INFRA-03**: Sidecar and OpenClaw container share the ./brain volume (Bio_Context.md, Target_Specs.json, qdrant_db)
 - [ ] **INFRA-04**: Existing CI/CD pipeline (GitHub Actions lint → SAST → VPS deploy) covers the new sidecar service
 - [ ] **INFRA-05**: playwright-stealth is replaced with patchright for CDP-level bot detection bypass
-- [ ] **INFRA-06**: Gemini model IDs are upgraded from gemini-1.5-* to gemini-2.5-flash across all services
+- [x] **INFRA-06**: Gemini model IDs are upgraded from gemini-1.5-* to gemini-2.5-flash across all services
 
 ### Scraping — Platform Coverage
 
@@ -123,9 +123,9 @@
 |-------------|-------|--------|
 | INFRA-01 | Phase 1 | Pending |
 | INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Pending |
-| INFRA-06 | Phase 1 | Pending |
+| INFRA-06 | Phase 1 | Complete |
 | INFRA-05 | Phase 2 | Pending |
 | SCRAPE-01 | Phase 2 | Pending |
 | SCRAPE-04 | Phase 2 | Pending |
