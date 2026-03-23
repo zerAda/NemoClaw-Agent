@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-sidecar-foundation/01-01-PLAN.md
-last_updated: "2026-03-23T10:17:55.864Z"
+stopped_at: Completed 01-sidecar-foundation/01-03-PLAN.md
+last_updated: "2026-03-23T10:17:03.000Z"
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-23)
 ## Current Position
 
 Phase: 01 (sidecar-foundation) — EXECUTING
-Plan: 1 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Plan: 1 of 5
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-sidecar-foundation P03 | 9 | 2 tasks | 5 files |
 | Phase 01-sidecar-foundation P02 | 4 | 2 tasks | 6 files |
 | Phase 01-sidecar-foundation P01 | 9 | 2 tasks | 6 files |
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - [Phase 01-sidecar-foundation]: BRAIN_PATH env var resolves Qdrant DB path; brain_path arg takes priority for test isolation; default /app/brain matches docker-compose volume mount
 - [Phase 01-sidecar-foundation]: Pre-install patchright and python-telegram-bot in Phase 1 to avoid docker image rebuild cycles in Phases 2 and 4
 - [Phase 01-sidecar-foundation]: Use pytest.mark.skip stubs (not empty files) so stub intent is clear and activation is a one-line change
+- [Phase 01-sidecar-foundation P03]: Use `from src.app import PhoenixApp` (not career_agent.src) — container WORKDIR=/app makes sidecar/ and src/ siblings
+- [Phase 01-sidecar-foundation P03]: Patch PhoenixApp class (not _phoenix instance) in test fixture to prevent lifespan from calling real constructor
+- [Phase 01-sidecar-foundation P03]: career_agent/conftest.py adds sys.path entry and patches playwright_stealth v2 for stealth_async compat
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T10:17:55.860Z
-Stopped at: Completed 01-sidecar-foundation/01-01-PLAN.md
+Last session: 2026-03-23T10:17:03.000Z
+Stopped at: Completed 01-sidecar-foundation/01-03-PLAN.md
 Resume file: None
