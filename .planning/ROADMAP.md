@@ -36,11 +36,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Test scaffold: requirements.txt + pytest stubs for INFRA-01/02/03
-- [ ] 01-02-PLAN.md — Gemini model ID upgrade to gemini-2.5-flash + MemoryService BRAIN_PATH fix
-- [ ] 01-03-PLAN.md — FastAPI sidecar (career_agent/sidecar/main.py) + Dockerfile
-- [ ] 01-04-PLAN.md — docker-compose.yml career-agent service + .env.example
-- [ ] 01-05-PLAN.md — SKILL.md + agent.md skill reference + CI requirements install
+- [x] 01-01-PLAN.md — Test scaffold: requirements.txt + pytest stubs for INFRA-01/02/03
+- [x] 01-02-PLAN.md — Gemini model ID upgrade to gemini-2.5-flash + MemoryService BRAIN_PATH fix
+- [x] 01-03-PLAN.md — FastAPI sidecar (career_agent/sidecar/main.py) + Dockerfile
+- [x] 01-04-PLAN.md — docker-compose.yml career-agent service + .env.example
+- [x] 01-05-PLAN.md — SKILL.md + agent.md skill reference + CI requirements install
 
 ### Phase 2: Stealth Layer and Scraping Foundation
 **Goal**: The scraper operates without playwright-stealth, survives 2026-era bot detection, and retrieves real job listings from France Travail (via API) and LinkedIn (via patchright) with rate limiting enforced and failures surfaced as Telegram alerts
@@ -52,7 +52,14 @@ Plans:
   3. When a scraper encounters a block, captcha, or empty result, NemoClaw sends a Telegram alert naming the platform and the error — no silent failure
   4. Browser context is opened once per platform batch and reused across all URLs in that batch — not opened and closed per URL
   5. Per-platform delay configs exist in career_agent/config/ and are enforced between requests — scraping does not run at machine speed
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Wave 0: Dependencies, models, test scaffolds, conftest fix, Dockerfile update
+- [ ] 02-02-PLAN.md — patchright migration + context reuse + rate limiting in scraper.py
+- [ ] 02-03-PLAN.md — France Travail OAuth2 API scraper methods
+- [ ] 02-04-PLAN.md — AlertService implementation (Telegram one-shot alerts)
+- [ ] 02-05-PLAN.md — App integration: dual scraper in run_cycle + docker env vars
 
 ### Phase 3: Scoring Pipeline
 **Goal**: Every scraped listing is scored against the candidate's Bio_Context and Target_Specs using gemini-2.5-flash, with fast-fail exclusion running first, and score records persisted for every job regardless of outcome
@@ -143,7 +150,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Sidecar Foundation | 5/5 | Complete   | 2026-03-23 |
-| 2. Stealth Layer and Scraping Foundation | 0/TBD | Not started | - |
+| 2. Stealth Layer and Scraping Foundation | 0/5 | Not started | - |
 | 3. Scoring Pipeline | 0/TBD | Not started | - |
 | 4. Telegram Interface and Autonomous Scheduling | 0/TBD | Not started | - |
 | 5. Deduplication Hardening and Application State Machine | 0/TBD | Not started | - |
