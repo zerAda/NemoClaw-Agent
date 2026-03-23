@@ -76,8 +76,8 @@ jobs:
             sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" .env \
               || echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
             # Sync TELEGRAM_BOT_TOKEN from GitHub secret
-            sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_TOKEN }}|" .env \
-              || echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> .env
+            sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}|" .env \
+              || echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
 
             # === Network Setup ===
             docker network inspect traefik-net > /dev/null 2>&1 || docker network create traefik-net
