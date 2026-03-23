@@ -4,35 +4,23 @@ services:
     container_name: openclaw
     restart: unless-stopped
     environment:
-      # === AI Model Configuration ===
+      # === AI Model (Google Gemini — native provider format) ===
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GOOGLE_API_KEY=${GEMINI_API_KEY}
-      - MODEL_ID=gemini-2.5-flash
-      - BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+      - MODEL_ID=google/gemini-2.5-flash
       # === Telegram Gateway ===
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      # === OpenClaw Core ===
-      - NEMO_ROUTING_MODE=cloud
-      - NEMO_EXEMPT_SANDBOX=true
-      - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
-      - NEMO_PAIRING_CODE=${NEMO_PAIRING_CODE}
-      # === Advanced: Logging & Debugging ===
-      - LOG_LEVEL=INFO
-      - OPENCLAW_LOG_LEVEL=info
-      # === Advanced: Agent Identity ===
+      # === Agent Identity ===
       - OPENCLAW_AGENT_IDENTITY=/app/agent.md
-      # === Advanced: Workspace & Memory ===
       - OPENCLAW_WORKSPACE=/app/workspace
-      # === Skills Path ===
       - OPENCLAW_SKILLS_PATH=/app/skills
+      # === Logging ===
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - OPENCLAW_LOG_LEVEL=${OPENCLAW_LOG_LEVEL:-info}
     volumes:
-      # Persistent workspace — survives container restarts
       - openclaw-workspace:/app/workspace
-      # Persistent brain/memory — application history & learning
       - ./brain:/app/brain
-      # Agent identity file
       - ./agent.md:/app/agent.md:ro
-      # Skills definitions (read-only)
       - ./skills:/app/skills:ro
     healthcheck:
       disable: true
@@ -58,7 +46,6 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_CHAT_ID=${NEMO_AUTH_USER_ID}
       - BRAIN_PATH=/app/brain
       - LOG_LEVEL=INFO
     volumes:
