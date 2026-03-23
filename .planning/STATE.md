@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-sidecar-foundation/01-02-PLAN.md
-last_updated: "2026-03-23T10:12:57.317Z"
+stopped_at: Completed 01-sidecar-foundation/01-01-PLAN.md
+last_updated: "2026-03-23T10:17:55.864Z"
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 1 of 5
 
 *Updated after each plan completion*
 | Phase 01-sidecar-foundation P02 | 4 | 2 tasks | 6 files |
+| Phase 01-sidecar-foundation P01 | 9 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Recent decisions affecting current work:
 - Fully autonomous apply (no approval gate): user chose full autonomy
 - Gemini as LLM: already integrated in both components
 - [Phase 01-sidecar-foundation]: BRAIN_PATH env var resolves Qdrant DB path; brain_path arg takes priority for test isolation; default /app/brain matches docker-compose volume mount
+- [Phase 01-sidecar-foundation]: Pre-install patchright and python-telegram-bot in Phase 1 to avoid docker image rebuild cycles in Phases 2 and 4
+- [Phase 01-sidecar-foundation]: Use pytest.mark.skip stubs (not empty files) so stub intent is clear and activation is a one-line change
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-23T10:12:57.313Z
-Stopped at: Completed 01-sidecar-foundation/01-02-PLAN.md
+Last session: 2026-03-23T10:17:55.860Z
+Stopped at: Completed 01-sidecar-foundation/01-01-PLAN.md
 Resume file: None

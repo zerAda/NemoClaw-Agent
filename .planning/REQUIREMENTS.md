@@ -7,8 +7,8 @@
 
 ### Infrastructure & Integration
 
-- [ ] **INFRA-01**: career_agent/ Python module is wrapped in a FastAPI sidecar service deployable as a second Docker Compose service alongside the OpenClaw container
-- [ ] **INFRA-02**: NemoClaw (OpenClaw LLM) can invoke career_agent capabilities via HTTP skill endpoint (SKILL.md + /tools/invoke)
+- [x] **INFRA-01**: career_agent/ Python module is wrapped in a FastAPI sidecar service deployable as a second Docker Compose service alongside the OpenClaw container
+- [x] **INFRA-02**: NemoClaw (OpenClaw LLM) can invoke career_agent capabilities via HTTP skill endpoint (SKILL.md + /tools/invoke)
 - [x] **INFRA-03**: Sidecar and OpenClaw container share the ./brain volume (Bio_Context.md, Target_Specs.json, qdrant_db)
 - [ ] **INFRA-04**: Existing CI/CD pipeline (GitHub Actions lint → SAST → VPS deploy) covers the new sidecar service
 - [ ] **INFRA-05**: playwright-stealth is replaced with patchright for CDP-level bot detection bypass
@@ -121,8 +121,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Pending |
 | INFRA-06 | Phase 1 | Complete |
