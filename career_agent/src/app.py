@@ -1,87 +1,140 @@
 import asyncio
 import os
-import logging
-from typing import Dict, List
+from typing import List
 
 from .hunter import HunterService
 from .tailor import TailorService
 from .memory import MemoryService
+from .alerter import AlertService
+from .scraper import Scraper
+from .models import JobListing, ScoreRecord
+from .config import config
+from .logger import configure_logging, get_logger
 
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("PhoenixApp")
+# Initialize root logging
+configure_logging()
 
 class PhoenixApp:
-    """The Orchestrator: Connecting all Career Agent modules."""
+    """Expert Orchestrator: Diamond-Grade Resilience and Observability."""
 
-    def __init__(self, brain_path: str):
+    def __init__(self, brain_path: str, cycle_id: str = "SYSTEM"):
+        # EXPERT: Initialize global config once for legacy support, but prefer DI below
+        config.initialize(brain_path)
+        
+        self.cycle_id = cycle_id
         self.brain_path = brain_path
-        self.hunter = HunterService(brain_path=brain_path)
-        self.tailor = TailorService(brain_path=brain_path)
+        self.logger = get_logger("PhoenixApp", cycle_id)
+        
+        # Professional Throttling: Prevents VPS memory exhaustion and bot detection
+        self.semaphore = asyncio.Semaphore(2)
+        
+        # EXPERT: All services now injected with brain_path
+        self.alerter = AlertService()
         self.memory = MemoryService(brain_path=brain_path)
+        self.scraper = Scraper(brain_path=brain_path, alerter=self.alerter, cycle_id=cycle_id)
+        self.hunter = HunterService(brain_path=brain_path, cycle_id=cycle_id)
+        self.tailor = TailorService(brain_path=brain_path, cycle_id=cycle_id)
 
-    async def process_job(self, job: Dict):
-        """Standardized single-job processing atom with error isolation."""
+    async def process_job(self, job: JobListing):
+        """Standardized single-job processing with timeouts and detailed state tracking."""
         try:
-            if self.memory.is_already_processed(job["url"]):
-                logger.info(f"Skipping already seen job: {job['title']}")
+            # Diamond Grade: Implement strict timeout to prevent hung cycles
+            await asyncio.wait_for(self._process_job_task(job), timeout=120.0)
+        except asyncio.TimeoutError:
+            self.logger.error(f"ABANDONED: Processing TIMEOUT (120s) for '{job.title}'")
+            self.memory.add_application(job.url, {
+                "title": job.title, "status": "ABANDONED", "reasoning": "Processing timeout"
+            })
+        except Exception as e:
+            self.logger.error(f"Orchestrator Failure [{job.title}]: {type(e).__name__}: {e}")
+
+    async def _process_job_task(self, job: JobListing):
+        """Internal task logic with Semaphore access."""
+        async with self.semaphore:
+            self.logger.info(f"Processing: {job.title} ({job.source})")
+            
+            if self.memory.is_already_processed(job.url):
+                self.logger.info(f"Skipping Already Seen: {job.title}")
                 return
 
-            # 1. Pull Full JD
-            jd_text = await self.hunter.scraper.get_linkedin_job_description(job["url"])
+            # 1. Pull Full JD (Retries)
+            jd_text = ""
+            for attempt in range(max(1, int(os.getenv("SCRAPE_RETRIES", 2)))):
+                jd_text = await self.scraper.get_linkedin_job_description(job.url)
+                if jd_text: break
+                self.logger.warning(f"Retry JD extraction ({attempt+1}) for {job.title}")
+                await asyncio.sleep(2)
+
+            # --- Observability: Log JD Extraction failures specifically ---
             if not jd_text or len(jd_text) < 100:
-                logger.warning(f"Invalid JD content for {job['title']}. Skipping.")
+                self.logger.error(f"ABANDONED: {job.title} - JD Extraction Failed or Insufficient.")
+                self.memory.add_application(job.url, {
+                    "title": job.title, "source": job.source, "status": "ABANDONED", 
+                    "reasoning": "Failed to extract readable job description"
+                })
                 return
 
-            # 2. Score (Hunter)
-            report = await self.hunter.score_job(jd_text)
-            if report.recommendation == "SKIP":
-                logger.info(f"SKIPPING: {job['title']} (Score: {report.score})")
-                self.memory.add_application(job["url"], {"title": job["title"], "status": "SKIPPED", "score": report.score})
+            job.description = jd_text
+
+            # 2. Score (Hunter) -> ScoreRecord
+            score_record = await self.hunter.score_job(job)
+            
+            # Persist score metadata regardless of outcome (SCORE-04)
+            self.memory.add_application(job.url, {
+                "title": job.title, "company": job.company, "source": job.source,
+                "score": score_record.score, "recommendation": score_record.recommendation,
+                "reasoning": score_record.reasoning, "fast_failed": score_record.fast_failed,
+                "threshold_met": score_record.threshold_met, "cycle_id": self.cycle_id,
+                "status": "SKIPPED" if score_record.recommendation == "SKIP" else "SCORED"
+            })
+
+            if score_record.recommendation == "SKIP":
+                self.logger.info(f"SKIP ({score_record.score}): {job.title} - {score_record.reasoning}")
                 return
 
-            # 3. Tailor (If High Match)
-            logger.info(f"MATCH FOUND: {job['title']}! Generating letter...")
-            letter = await self.tailor.customize_letter(jd_text, report.dict())
+            # 3. Tailor (Bio-Aware Generation)
+            self.logger.info(f"DIAMOND MATCH ({score_record.score}): {job.title}. Tailoring...")
+            # EXPERT: Pass full score_record object for intelligence sharing
+            letter = await self.tailor.customize_letter(jd_text, score_record)
             
-            # 4. Save Artifacts using UUID for uniqueness
-            job_id_uuid = self.memory._generate_uuid(job["url"])
-            output_dir = os.path.join(self.brain_path, "applications", job_id_uuid)
-            os.makedirs(output_dir, exist_ok=True)
+            # 4. Persistence
+            job_id = self.memory._generate_uuid(job.url)
+            out_path = os.path.join(self.brain_path, "applications", job_id)
+            os.makedirs(out_path, exist_ok=True)
             
-            with open(os.path.join(output_dir, "cover_letter.txt"), "w") as f:
+            # Using shortened cycle_id for filename readability
+            with open(os.path.join(out_path, f"cover_letter_{self.cycle_id[:8]}.txt"), "w", encoding="utf-8") as f:
                 f.write(letter.body)
             
-            self.memory.add_application(job["url"], {
-                "title": job["title"],
-                "status": "READY",
-                "score": report.score,
-                "uuid": job_id_uuid
+            self.memory.add_application(job.url, {
+                "title": job.title, "status": "READY", "score": score_record.score,
+                "recommendation": score_record.recommendation,
+                "reasoning": score_record.reasoning,
+                "cycle_id": self.cycle_id, "uuid": job_id
             })
-            logger.info(f"ARTIFACT READY: {job['title']} -> {output_dir}")
-        except Exception as e:
-            logger.error(f"CRITICAL ERROR processing {job.get('title', 'Unknown')}: {e}")
+            self.logger.info(f"SUCCESS: {job.title} -> {out_path}")
 
-    async def run_cycle(self, keyword: str, location: str = "United States"):
-        """Run a high-performance parallel cycle."""
-        logger.info(f"--- Starting PARALLEL Phoenix Cycle for: {keyword} ---")
-        scraped_jobs = await self.hunter.scraper.search_linkedin_jobs(keyword, location)
-        
-        # Process up to 5 jobs concurrently
-        tasks = [self.process_job(job) for job in scraped_jobs[:5]]
-        await asyncio.gather(*tasks)
-        logger.info("--- Parallel Cycle complete ---")
+    async def run_cycle(self, keyword: str, location: str = "France"):
+        """Run standard search and process cycle with Diamond-Grade lifecycle management."""
+        self.logger.info(f"=== Starting Cycle: {keyword} @ {location} ===")
 
-        logger.info("--- Cycle Complete ---")
+        # Managed scraper context ensures browser cleanup even on failure
+        async with self.scraper as managed_scraper:
+            results = await asyncio.gather(
+                managed_scraper.search_france_travail_jobs(keyword),
+                managed_scraper.search_linkedin_jobs(keyword, location),
+                return_exceptions=True,
+            )
 
-async def main():
-    # Ensure current directory is correct or use absolute path
-    brain_path = "./brain"
-    if not os.path.exists(brain_path):
-        os.makedirs(brain_path)
-        
-    app = PhoenixApp(brain_path=brain_path)
-    await app.run_cycle("AI Engineer")
+            all_jobs: List[JobListing] = []
+            for result in results:
+                if isinstance(result, list): all_jobs.extend(result)
+                elif isinstance(result, Exception): self.logger.error(f"Search Failure: {result}")
 
-if __name__ == "__main__":
-    asyncio.run(main())
+            self.logger.info(f"Initial Pool: {len(all_jobs)} jobs.")
+
+            # Batch process up to 15 jobs (throttled by semaphore)
+            tasks = [self.process_job(job) for job in all_jobs[:15]]
+            await asyncio.gather(*tasks)
+
+        self.logger.info(f"=== Cycle Finished [{self.cycle_id}] ===")

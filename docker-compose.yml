@@ -47,8 +47,12 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - BRAIN_PATH=/app/brain
-      - MODEL_ID=gemini-1.5-flash
+      - MODEL_ID=gemini-2.5-flash
       - LOG_LEVEL=INFO
+      - FRANCE_TRAVAIL_CLIENT_ID=${FRANCE_TRAVAIL_CLIENT_ID}
+      - FRANCE_TRAVAIL_CLIENT_SECRET=${FRANCE_TRAVAIL_CLIENT_SECRET}
+      - NEMO_AUTH_USER_ID=${NEMO_AUTH_USER_ID}
+      - NEMO_API_KEY=${NEMO_API_KEY}
     volumes:
       - ./brain:/app/brain
     networks:
@@ -62,9 +66,15 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 2G
         reservations:
-          memory: 256M
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.career-sidecar.rule=Host(`sidecar.nemoclaw-ai.com`)"
+      - "traefik.http.routers.career-sidecar.entrypoints=websecure"
+      - "traefik.http.routers.career-sidecar.tls.certresolver=letsencrypt"
+      - "traefik.http.services.career-sidecar.loadbalancer.server.port=8001"
 
 volumes:
   openclaw-workspace:

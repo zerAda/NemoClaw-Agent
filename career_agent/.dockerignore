@@ -1,0 +1,25 @@
+# Diamond Grade .dockerignore
+# Exclude local virtual environments and caches
+**/__pycache__
+**/.venv
+**/.pytest_cache
+**/.coverage
+**/.git
+**/.github
+**/.idea
+**/.vscode
+
+# Exclude large local data
+brain/qdrant_db/
+brain/applications/
+
+# Exclude local documentation and logs
+*.log
+*.m4a
+walkthrough.md
+audit_report.md
+implementation_plan.md
+task.md
+verify_phase3.py
+verify_diamond.py
+tests/

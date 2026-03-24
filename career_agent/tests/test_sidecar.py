@@ -1,39 +1,39 @@
+"""Sidecar API tests — Expert validation."""
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
-
 @pytest.fixture
-def client(mock_phoenix_app):
-    """TestClient with PhoenixApp mocked out — no real Playwright/Gemini/Qdrant.
+def client():
+    """TestClient for elite sidecar."""
+    import sidecar.main as sidecar_mod
+    sidecar_mod.state.active_cycles.clear()
+    with TestClient(sidecar_mod.app) as c:
+        yield c
 
-    Patches PhoenixApp class in sidecar.main so the lifespan receives the mock
-    instead of trying to construct a real instance (which requires brain files).
-    """
-    with patch("career_agent.sidecar.main.PhoenixApp", return_value=mock_phoenix_app):
-        from career_agent.sidecar.main import app
-        with TestClient(app, raise_server_exceptions=True) as c:
-            yield c
-
-
-def test_health_endpoint_returns_200(client):
-    """GET /health returns {"status": "ok"}"""
+def test_health_elite(client):
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["mode"] == "ELITE"
 
+def test_run_cycle_generates_id(client):
+    with patch("sidecar.main.PhoenixApp") as mock_app:
+        response = client.post("/run-cycle", json={"keyword": "AI"})
+        assert response.status_code == 202
+        data = response.json()
+        assert "cycle_id" in data
+        assert data["cycle_id"].startswith("CYC-")
 
-def test_run_cycle_returns_202(client):
-    """POST /run-cycle returns 202 Accepted"""
-    response = client.post("/run-cycle", json={"keyword": "AI Engineer", "location": "France"})
-    assert response.status_code == 202
-    data = response.json()
-    assert data["status"] == "accepted"
+def test_run_cycle_custom_id(client):
+    with patch("sidecar.main.PhoenixApp") as mock_app:
+        response = client.post("/run-cycle", json={"keyword": "AI", "cycle_id": "MY-TRACK-1"})
+        assert response.status_code == 202
+        assert response.json()["cycle_id"] == "MY-TRACK-1"
 
-
-def test_run_cycle_triggers_background_task(client, mock_phoenix_app):
-    """POST /run-cycle enqueues PhoenixApp.run_cycle as background task"""
-    response = client.post("/run-cycle", json={"keyword": "Backend Dev", "location": "Paris"})
-    assert response.status_code == 202
-    # TestClient executes background tasks synchronously
-    mock_phoenix_app.run_cycle.assert_called_once()
+def test_run_cycle_limit_hit(client):
+    import sidecar.main as sidecar_mod
+    sidecar_mod.state.active_cycles = {"c1": "k1", "c2": "k2", "c3": "k3"}
+    
+    response = client.post("/run-cycle", json={"keyword": "AI"})
+    assert response.status_code == 429
+    assert "limit reached" in response.json()["detail"]

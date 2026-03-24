@@ -1,25 +1,35 @@
-"""
-Root conftest for career_agent test suite.
-
-Adds career_agent/ to sys.path so that `from src.app import PhoenixApp`
-resolves correctly when sidecar/main.py is imported during tests.
-Also patches playwright_stealth to expose stealth_async (v2.x renamed it to stealth).
-"""
-import sys
+"""Shared test configuration and fixtures."""
+import pytest
 import os
-from unittest.mock import MagicMock, AsyncMock
+import sys
+from src.config import config
 
-# Make career_agent/ a path root so sidecar/main.py can do `from src.app import PhoenixApp`
-_career_agent_dir = os.path.dirname(__file__)
-if _career_agent_dir not in sys.path:
-    sys.path.insert(0, _career_agent_dir)
+# Add the project root to sys.path for absolute imports in tests
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-# playwright_stealth v2.x removed stealth_async — patch it back in before any src import
-import playwright_stealth as _ps
-if not hasattr(_ps, "stealth_async"):
-    _ps.stealth_async = AsyncMock(return_value=None)
+@pytest.fixture
+def tmp_brain_path(tmp_path):
+    """Temporary brain directory with required files."""
+    brain = tmp_path / "brain"
+    brain.mkdir(exist_ok=True)
+    (brain / "Bio_Context.md").write_text("Test candidate bio.")
+    (brain / "Target_Specs.json").write_text(
+        '{"target_roles": ["AI Engineer"], "exclusions": ["intern"], "scoring_threshold": 0.85}'
+    )
+    return str(brain)
 
-# Also patch at the module attribute level for direct `from playwright_stealth import stealth_async`
-import playwright_stealth.stealth as _ps_stealth
-if not hasattr(_ps_stealth, "stealth_async"):
-    _ps_stealth.stealth_async = AsyncMock(return_value=None)
+@pytest.fixture(autouse=True)
+def setup_test_config(tmp_path):
+    """Automatically initialize ProjectConfig for every test using a temp brain."""
+    brain_dir = tmp_path / "brain"
+    brain_dir.mkdir(exist_ok=True)
+    
+    # Create required files for config to load without error logs
+    if not (brain_dir / "Bio_Context.md").exists():
+        (brain_dir / "Bio_Context.md").write_text("# Test Bio")
+    if not (brain_dir / "Target_Specs.json").exists():
+        (brain_dir / "Target_Specs.json").write_text("{}")
+    
+    config.initialize(brain_path=str(brain_dir))
+    yield config
+    config._initialized = False

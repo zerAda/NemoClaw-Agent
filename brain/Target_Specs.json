@@ -1,4 +1,10 @@
 {
+  "rate_limits": {
+    "france_travail_daily": 50,
+    "linkedin_daily": 15,
+    "min_delay_s": 2,
+    "max_delay_s": 5
+  },
   "target_roles": ["Senior AI Engineer", "Full Stack Developer (Next.js/Python)"],
   "location_preference": "Remote / Paris, France",
   "salary_range": {
