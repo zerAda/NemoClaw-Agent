@@ -13,6 +13,8 @@ tools:
       or trigger Phoenix. Returns immediately (202) — cycle runs in background.
     method: POST
     url: http://career-agent:8001/run-cycle
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
     parameters:
       keyword:
         type: string
@@ -30,3 +32,5 @@ tools:
       Call before run_cycle if you are unsure the service is up.
     method: GET
     url: http://career-agent:8001/health
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"

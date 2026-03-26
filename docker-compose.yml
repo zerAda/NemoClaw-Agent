@@ -17,6 +17,7 @@ services:
       # === Logging ===
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - OPENCLAW_LOG_LEVEL=${OPENCLAW_LOG_LEVEL:-info}
+      - NEMO_API_KEY=${NEMO_API_KEY}
     volumes:
       - openclaw-workspace:/app/workspace
       - ./brain:/app/brain
