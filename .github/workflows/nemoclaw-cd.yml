@@ -100,7 +100,7 @@ jobs:
             docker compose up -d --force-recreate
 
             echo "Waiting for containers to stabilize..."
-            sleep 30
+            sleep 60
 
             # === Final Verification ===
             echo "--- Final Container Status ---"

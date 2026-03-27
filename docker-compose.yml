@@ -59,6 +59,8 @@ services:
       - NEMO_API_KEY=${NEMO_API_KEY}
     volumes:
       - ./brain:/app/brain
+    ports:
+      - "8001:8001"
     networks:
       - traefik-net
     healthcheck:
