@@ -36,11 +36,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             mkdir -p /opt/nemoclaw
-            # Backup .env before wipe — contains secrets not in GitHub
             cp /opt/nemoclaw/.env /tmp/nemoclaw-env-backup 2>/dev/null || true
             rm -rf /opt/nemoclaw/* || true
 
-      - name: Deploy to VPS
+      - name: Transfer Files
         uses: appleboy/scp-action@master
         with:
           host: ${{ vars.VPS_HOST }}
@@ -48,7 +47,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
           target: "/opt/nemoclaw"
-          rm: false
 
       - name: Hot-Swap via SSH
         uses: appleboy/ssh-action@master
@@ -99,22 +97,29 @@ jobs:
             docker compose pull --quiet nemoclaw
             docker compose up -d --force-recreate
 
-            echo "Waiting for containers to stabilize..."
+            echo "Wait for containers to stabilize (60s — Chromium setup)..."
             sleep 60
 
-            # === Final Verification ===
+            # === Final Verification (Internal) ===
             echo "--- Final Container Status ---"
             docker compose ps
             echo "--- NemoClaw Logs (last 30 lines) ---"
             docker logs openclaw --tail=30 2>&1 || echo "WARNING: Could not get openclaw logs"
             echo "--- Career-Agent Logs (last 20 lines) ---"
             docker logs career-agent --tail=20 2>&1 || echo "WARNING: Could not get career-agent logs"
-            echo "--- Career-Agent Health ---"
-            curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" \
-              || echo "WARNING: career-agent health check failed (verify NEMO_API_KEY secret in GitHub)"
+            echo "--- Internal Health Check ---"
+            curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8082/health && echo " ✓ sidecar healthy" || echo "WARNING: sidecar health failed"
+            curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" || echo "WARNING: career-agent health failed"
             echo "--- Environment Check ---"
             docker exec openclaw env | grep -E "(MODEL|BASE_URL|GEMINI|TELEGRAM|NEMO|SKILLS)" || echo "WARNING: Env mismatch"
             echo "NemoClaw + Career-Agent Deployment Verified"
+
+      - name: External Verification (Public IP)
+        run: |
+          sleep 5
+          echo "Attempting external verification via VPS IP..."
+          curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://${{ vars.VPS_HOST }}:8082/health && echo " ✓ sidecar externally reachable" || echo "INFO: Sidecar external check failed (likely firewall)"
+          curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://${{ vars.VPS_HOST }}:8001/health && echo " ✓ career-agent externally reachable" || echo "INFO: Career-agent external check failed (likely firewall)"
 
       - name: Image Cleanup
         uses: appleboy/ssh-action@master
