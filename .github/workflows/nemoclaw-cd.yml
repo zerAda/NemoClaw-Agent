@@ -110,8 +110,8 @@ jobs:
             echo "--- Career-Agent Logs (last 20 lines) ---"
             docker logs career-agent --tail=20 2>&1 || echo "WARNING: Could not get career-agent logs"
             echo "--- Career-Agent Health ---"
-            curl -sf http://localhost:8001/health && echo " ✓ career-agent healthy" \
-              || echo "WARNING: career-agent health check failed"
+            curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" \
+              || echo "WARNING: career-agent health check failed (verify NEMO_API_KEY secret in GitHub)"
             echo "--- Environment Check ---"
             docker exec openclaw env | grep -E "(MODEL|BASE_URL|GEMINI|TELEGRAM|NEMO|SKILLS)" || echo "WARNING: Env mismatch"
             echo "NemoClaw + Career-Agent Deployment Verified"

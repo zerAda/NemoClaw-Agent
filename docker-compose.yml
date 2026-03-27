@@ -18,7 +18,9 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - OPENCLAW_LOG_LEVEL=${OPENCLAW_LOG_LEVEL:-info}
       - NEMO_API_KEY=${NEMO_API_KEY}
-      - PORT=8081
+      - PORT=8080
+    ports:
+      - "8082:8080"
     volumes:
       - openclaw-workspace:/app/workspace
       - ./brain:/app/brain
@@ -39,7 +41,7 @@ services:
       - "traefik.http.routers.nemoclaw.rule=Host(`nemoclaw.resto-bot.com`)"
       - "traefik.http.routers.nemoclaw.entrypoints=websecure"
       - "traefik.http.routers.nemoclaw.tls.certresolver=letsencrypt"
-      - "traefik.http.services.nemoclaw.loadbalancer.server.port=8081"
+      - "traefik.http.services.nemoclaw.loadbalancer.server.port=8080"
 
   career-agent:
     build: ./career_agent
