@@ -36,11 +36,10 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             mkdir -p /opt/nemoclaw
-            # Backup .env before wipe — contains secrets not in GitHub
             cp /opt/nemoclaw/.env /tmp/nemoclaw-env-backup 2>/dev/null || true
             rm -rf /opt/nemoclaw/* || true
 
-      - name: Deploy to VPS
+      - name: Transfer Files
         uses: appleboy/scp-action@master
         with:
           host: ${{ vars.VPS_HOST }}
@@ -48,79 +47,37 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
           target: "/opt/nemoclaw"
-          rm: false
 
       - name: Hot-Swap via SSH
+        env:
+          NEMO_API_KEY: ${{ secrets.NEMO_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         uses: appleboy/ssh-action@master
         with:
+          envs: NEMO_API_KEY,TELEGRAM_BOT_TOKEN
           host: ${{ vars.VPS_HOST }}
           username: ${{ vars.VPS_USER || 'root' }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          timeout: 15m
           script: |
             cd /opt/nemoclaw
-
-            echo "============================================"
-            echo "          NEMOCLAW PRE-START DIAGNOSTICS"
-            echo "============================================"
-            docker ps -a | grep -E "(openclaw|career-agent)" || echo "INFO: No pre-existing containers"
-            docker compose ps
-            echo "============================================"
-
-            # === Restore .env from backup, then apply fresh secrets ===
-            if [ -f /tmp/nemoclaw-env-backup ]; then
-              cp /tmp/nemoclaw-env-backup .env
-              echo "INFO: Restored .env from backup"
-            fi
-            # Always overwrite GEMINI_API_KEY from GitHub secret (source of truth)
-            sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" .env \
-              || echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
-            # Sync TELEGRAM_BOT_TOKEN from GitHub secret
-            sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}|" .env \
-              || echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
-            # Sync NEMO_API_KEY from GitHub secret for Sidecar Auth
-            sed -i "s|^NEMO_API_KEY=.*|NEMO_API_KEY=${{ secrets.NEMO_API_KEY }}|" .env \
-              || echo "NEMO_API_KEY=${{ secrets.NEMO_API_KEY }}" >> .env
-
-            # === Network Setup ===
-            docker network inspect traefik-net > /dev/null 2>&1 || docker network create traefik-net
-
-            # === Robust Cleanup & Fix Conflict ===
-            echo "Performing deep cleanup..."
-            docker compose down -v --remove-orphans || true
-            docker system prune -f --filter "label=com.docker.compose.project=nemoclaw" || true
-
-            # === Build career-agent image ===
-            echo "Building career-agent image..."
-            docker compose build career-agent
-
-            # === Re-deploy ===
-            echo "Starting fresh containers..."
-            docker compose pull --quiet nemoclaw
-            docker compose up -d --force-recreate
-
-            echo "Waiting for containers to stabilize..."
-            sleep 30
-
-            # === Final Verification ===
-            echo "--- Final Container Status ---"
-            docker compose ps
-            echo "--- NemoClaw Logs (last 30 lines) ---"
-            docker logs openclaw --tail=30 2>&1 || echo "WARNING: Could not get openclaw logs"
-            echo "--- Career-Agent Logs (last 20 lines) ---"
-            docker logs career-agent --tail=20 2>&1 || echo "WARNING: Could not get career-agent logs"
-            echo "--- Career-Agent Health ---"
-            curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" \
-              || echo "WARNING: career-agent health check failed (verify NEMO_API_KEY secret in GitHub)"
-            echo "--- Environment Check ---"
+            [ -f /tmp/nemoclaw-env-backup ] && cp /tmp/nemoclaw-env-backup .env || touch .env
+            
+            # Inject/Update Secrets
+            grep -q "NEMO_API_KEY" .env && sed -i "s/^NEMO_API_KEY=.*/NEMO_API_KEY=${NEMO_API_KEY}/" .env || echo "NEMO_API_KEY=${NEMO_API_KEY}" >> .env
+            grep -q "TELEGRAM_BOT_TOKEN" .env && sed -i "s/^TELEGRAM_BOT_TOKEN=.*/TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}/" .env || echo "TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" >> .env
+            
+            # Start/Restart Services
+            docker-compose down || true
+            docker-compose up -d --build
+            
+            # Verify Status
+            sleep 15
+            docker ps
             docker exec openclaw env | grep -E "(MODEL|BASE_URL|GEMINI|TELEGRAM|NEMO|SKILLS)" || echo "WARNING: Env mismatch"
-            echo "NemoClaw + Career-Agent Deployment Verified"
 
-      - name: Image Cleanup
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.VPS_HOST }}
-          username: ${{ vars.VPS_USER || 'root' }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            docker image prune -f --filter "until=24h"
+      - name: Final Verification
+        run: |
+          sleep 5
+          # Use VPS Host for Health Checks
+          curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://${{ vars.VPS_HOST }}:8082/health && echo " ✓ sidecar healthy" || echo "WARNING: Sidecar health check failed"
+          curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://${{ vars.VPS_HOST }}:8001/health && echo " ✓ career-agent healthy" || echo "WARNING: career-agent health check failed"
