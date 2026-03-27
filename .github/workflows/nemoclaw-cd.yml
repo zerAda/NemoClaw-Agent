@@ -6,6 +6,11 @@ on:
     types: [completed]
     branches: [master]
   workflow_dispatch:
+    inputs:
+      pairing_code:
+        description: 'Optional: Telegram Pairing Code to approve (leave empty for normal deploy)'
+        required: false
+        type: string
 
 concurrency:
   group: deploy-nemoclaw
@@ -85,7 +90,7 @@ jobs:
 
             # === Robust Cleanup & Fix Conflict ===
             echo "Performing deep cleanup..."
-            docker compose down -v --remove-orphans || true
+            docker compose down --remove-orphans || true
             docker system prune -f --filter "label=com.docker.compose.project=nemoclaw" || true
 
             # === Build career-agent image ===
@@ -112,8 +117,10 @@ jobs:
             curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" || echo "WARNING: career-agent health failed"
             echo "--- Environment Check ---"
             # === Administrative Actions (One-off Pairing) ===
-            echo "Approving Pairing Code: RMM65X8R..."
-            docker exec openclaw npx openclaw pairing approve telegram RMM65X8R || echo "INFO: Pairing already confirmed or command failed."
+            if [ -n "${{ github.event.inputs.pairing_code }}" ]; then
+              echo "Approving Pairing Code: ${{ github.event.inputs.pairing_code }}..."
+              docker exec openclaw npx openclaw pairing approve telegram ${{ github.event.inputs.pairing_code }} || echo "INFO: Pairing already confirmed or command failed."
+            fi
 
             echo "NemoClaw + Career-Agent Deployment Verified"
 
