@@ -5,16 +5,20 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def client():
-    """TestClient for elite sidecar."""
+    """TestClient for diamond sidecar with auth bypassed."""
     import sidecar.main as sidecar_mod
+    # Bypass auth for unit tests
+    sidecar_mod.app.dependency_overrides[sidecar_mod.verify_nemo_key] = lambda: True
     sidecar_mod.state.active_cycles.clear()
     with TestClient(sidecar_mod.app) as c:
         yield c
+    # Clean up
+    sidecar_mod.app.dependency_overrides.clear()
 
-def test_health_elite(client):
+def test_health_diamond(client):
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json()["mode"] == "ELITE"
+    assert response.json()["mode"] == "DIAMOND"
 
 def test_run_cycle_generates_id(client):
     with patch("sidecar.main.PhoenixApp") as mock_app:

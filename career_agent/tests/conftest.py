@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 def tmp_brain_path(tmp_path):
     """Temporary brain directory with required files."""
     brain = tmp_path / "brain"
-    brain.mkdir()
+    brain.mkdir(parents=True, exist_ok=True)
     (brain / "Bio_Context.md").write_text("Test candidate bio.")
     (brain / "Target_Specs.json").write_text(
         '{"target_roles": ["AI Engineer"], "exclusions": ["intern"], "scoring_threshold": 0.85}'

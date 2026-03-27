@@ -78,6 +78,9 @@ jobs:
             # Sync TELEGRAM_BOT_TOKEN from GitHub secret
             sed -i "s|^TELEGRAM_BOT_TOKEN=.*|TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}|" .env \
               || echo "TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}" >> .env
+            # Sync NEMO_API_KEY from GitHub secret for Sidecar Auth
+            sed -i "s|^NEMO_API_KEY=.*|NEMO_API_KEY=${{ secrets.NEMO_API_KEY }}|" .env \
+              || echo "NEMO_API_KEY=${{ secrets.NEMO_API_KEY }}" >> .env
 
             # === Network Setup ===
             docker network inspect traefik-net > /dev/null 2>&1 || docker network create traefik-net
