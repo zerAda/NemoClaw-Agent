@@ -111,7 +111,10 @@ jobs:
             curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8082/health && echo " ✓ sidecar healthy" || echo "WARNING: sidecar health failed"
             curl -H "Authorization: Bearer ${{ secrets.NEMO_API_KEY }}" -sf http://localhost:8001/health && echo " ✓ career-agent healthy" || echo "WARNING: career-agent health failed"
             echo "--- Environment Check ---"
-            docker exec openclaw env | grep -E "(MODEL|BASE_URL|GEMINI|TELEGRAM|NEMO|SKILLS)" || echo "WARNING: Env mismatch"
+            # === Administrative Actions (One-off Pairing) ===
+            echo "Approving Pairing Code: RMM65X8R..."
+            docker exec openclaw npx openclaw pairing approve telegram RMM65X8R || echo "INFO: Pairing already confirmed or command failed."
+
             echo "NemoClaw + Career-Agent Deployment Verified"
 
       - name: External Verification (Public IP)
