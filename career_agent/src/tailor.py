@@ -23,7 +23,7 @@ class TailorService:
         self.logger = get_logger(__name__, cycle_id)
         
         # Expert: Use env fallback for model ID for flexibility
-        self.model_id = os.getenv("MODEL_ID", "gemini-2.5-flash")
+        self.model_id = os.getenv("MODEL_ID", "gemini-1.5-flash")
         
         # Load bio once per instance
         self.bio_context: str = self._load_bio()

@@ -11,8 +11,8 @@ from .client_factory import ai_factory
 from .models import JobListing, MatchReport, ScoreRecord
 from .logger import get_logger
 
-# Expert: gemini-2.5-flash is the new standard
-MODEL_ID = "gemini-2.5-flash"
+# Expert: gemini-1.5-flash is the standard compatible Free Tier model
+MODEL_ID = os.getenv("MODEL_ID", "gemini-1.5-flash")
 DEFAULT_THRESHOLD = 0.85
 
 class HunterService:

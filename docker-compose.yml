@@ -7,7 +7,7 @@ services:
       # === AI Model (Google Gemini — native provider format) ===
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GOOGLE_API_KEY=${GEMINI_API_KEY}
-      - MODEL_ID=google/gemini-2.5-flash
+      - MODEL_ID=gemini-1.5-flash
       # === Telegram Gateway ===
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       # === Agent Identity ===
@@ -51,7 +51,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - BRAIN_PATH=/app/brain
-      - MODEL_ID=gemini-2.5-flash
+      - MODEL_ID=gemini-1.5-flash
       - LOG_LEVEL=INFO
       - FRANCE_TRAVAIL_CLIENT_ID=${FRANCE_TRAVAIL_CLIENT_ID}
       - FRANCE_TRAVAIL_CLIENT_SECRET=${FRANCE_TRAVAIL_CLIENT_SECRET}
