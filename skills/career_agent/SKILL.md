@@ -34,3 +34,47 @@ tools:
     url: http://career-agent:8001/health
     headers:
       Authorization: "Bearer ${NEMO_API_KEY}"
+
+  - name: get_status
+    description: >
+      Retrieve detailed pipeline statistics including counts of ready,
+      skipped, and processed job listings.
+    method: GET
+    url: http://career-agent:8001/status
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+
+  - name: pause_agent
+    description: >
+      Pause the autonomous daily job search and application cycle.
+    method: POST
+    url: http://career-agent:8001/control
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+    parameters:
+      action:
+        type: string
+        required: true
+        fixed: "pause"
+
+  - name: resume_agent
+    description: >
+      Resume the autonomous daily job search and application cycle.
+    method: POST
+    url: http://career-agent:8001/control
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+    parameters:
+      action:
+        type: string
+        required: true
+        fixed: "resume"
+
+  - name: manual_trigger
+    description: >
+      Trigger an immediate job search and scoring cycle using the last
+      successfully used search parameters.
+    method: POST
+    url: http://career-agent:8001/trigger
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"

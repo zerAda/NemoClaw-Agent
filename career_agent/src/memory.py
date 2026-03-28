@@ -82,3 +82,35 @@ class MemoryService:
                 limit=1
             )
             return len(results[0]) > 0
+
+    def get_stats(self) -> Dict:
+        """Phase 4: Aggregate counts of job statuses for reporting."""
+        try:
+            # EXPERT: Aggregating counts via scroll (suitable for small/medium DBs)
+            # In a production "Master" grade system, we might maintain counters in SQLite
+            scroll_result = self.client.scroll(
+                collection_name=self.collection_name,
+                limit=1000, # Large batch for summarization
+                with_payload=True,
+                with_vectors=False
+            )
+            
+            points = scroll_result[0]
+            stats = {
+                "total": len(points),
+                "READY": 0,
+                "SKIPPED": 0,
+                "SCORED": 0,
+                "ABANDONED": 0,
+                "APPLIED": 0 # For future phases
+            }
+            
+            for p in points:
+                status = p.payload.get("status")
+                if status in stats:
+                    stats[status] += 1
+            
+            return stats
+        except Exception as e:
+            logger.error(f"Failed to fetch stats from Qdrant: {e}")
+            return {"error": "Stats unavailable", "total": 0}

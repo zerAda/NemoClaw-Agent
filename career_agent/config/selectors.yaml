@@ -9,3 +9,15 @@ indeed:
   job_title: "h2.jobTitle"
   job_url: "a[data-jk]"
   job_description: "#jobDescriptionText"
+
+wttj:
+  job_card: "article"
+  job_title: "h4"
+  job_url: "a"
+  job_description: ".sc-10p0y79-0"
+
+apec:
+  job_card: ".container-resultat"
+  job_title: ".card-title"
+  job_url: "a"
+  job_description: ".details-offre-description"

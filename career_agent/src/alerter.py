@@ -20,19 +20,33 @@ class AlertService:
             logger.warning("AlertService: Missing credentials. Alerts will be logged but not sent.")
 
     async def send_alert(self, platform: str, message: str) -> bool:
-        """Send an urgent alert to the user. Swallows exceptions to prevent cycle death."""
+        """Diamond-Grade: Send an urgent alert for failures or blocks."""
+        return await self._push(f"🚨 SCRAPER ALERT [{platform}]\n\nIssue: {message}\nSeverity: CRITICAL")
+
+    async def send_info(self, message: str) -> bool:
+        """Standard status update for cycle progress."""
+        return await self._push(f"🤖 NemoClaw Status\n\n{message}")
+
+    async def send_summary(self, stats: dict) -> bool:
+        """Daily summary report formatted for Telegram readability."""
+        msg = "📊 Daily Autonomous Summary\n\n"
+        msg += f"• Total Scanned: {stats.get('total', 0)}\n"
+        msg += f"• Ready: {stats.get('READY', 0)}\n"
+        msg += f"• Skipped: {stats.get('SKIPPED', 0)}\n"
+        msg += f"• Errors: {stats.get('ABANDONED', 0)}\n\n"
+        msg += "Use /status for real-time details."
+        return await self._push(msg)
+
+    async def _push(self, text: str) -> bool:
+        """Internal delivery engine with merciless error suppression."""
         if not self.token or not self.chat_id or Bot is None:
-            logger.info(f"[OFFLINE ALERT] {platform}: {message}")
+            logger.info(f"[TELEGRAM OFFLINE] {text}")
             return False
 
         try:
             bot = Bot(token=self.token)
-            full_msg = f"‼️ {platform} Scraper Alert\n\nIssue: {message}\nSeverity: HIGH"
-            
-            logger.info(f"Sending Telegram alert for {platform}...")
-            await bot.send_message(chat_id=self.chat_id, text=full_msg)
+            await bot.send_message(chat_id=self.chat_id, text=text)
             return True
         except Exception as e:
-            # Mercilessly swallow Telegram errors to keep the scraper running
-            logger.error(f"AlertService failed to send to Telegram: {type(e).__name__}")
+            logger.error(f"AlertService failed to push: {type(e).__name__}: {e}")
             return False
