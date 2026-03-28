@@ -23,8 +23,12 @@ class MemoryService:
         self._ensure_collection()
 
     def _generate_uuid(self, job_url: str) -> str:
-        """Deterministic UUIDv5 generation for URL-persistent identification."""
-        return str(uuid.uuid5(self.namespace, job_url))
+        """Deterministic UUIDv5 generation for URL-persistent identification.
+        Sanitizes tracking query parameters to ensure stable hashes.
+        """
+        # Strip query parameters (e.g. ?refId=...) to ensure deterministic hashing
+        clean_url = job_url.split('?')[0] if job_url else ""
+        return str(uuid.uuid5(self.namespace, clean_url))
 
     def _ensure_collection(self) -> None:
         try:

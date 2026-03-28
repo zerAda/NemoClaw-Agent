@@ -6,6 +6,7 @@ from typing import Dict, Optional
 import httpx
 from patchright.async_api import async_playwright, Page
 from .config import config
+from .tracking import TrackingService
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +16,12 @@ class ApplyService:
     Strictly guarded by LEGAL_GATE_APPROVED and AUTO_APPLY_ENABLED flags.
     """
     
-    def __init__(self, cycle_id: str = "SYSTEM"):
+    def __init__(self, cycle_id: str = "SYSTEM", brain_path: str = ""):
         self.cycle_id = cycle_id
+        self.brain_path = brain_path
         self.is_legal_approved = config.legal_gate_approved
         self.is_enabled = config.auto_apply_enabled
+        self.tracking = TrackingService(brain_path=brain_path) if brain_path else None
 
     async def submit_application(self, job_url: str, source: str, cover_letter_path: str) -> str:
         """EntryPoint for autonomous apply. 
@@ -109,14 +112,25 @@ class ApplyService:
         """Phase 8: Multi-platform Playwright form-filler."""
         logger.info(f"EXECUTING: Real {source} form-fill submission -> {job_url}")
         
+        user_data_dir = os.environ.get("BRAIN_PATH", "/app/brain") + "/chrome_profile"
+        os.makedirs(user_data_dir, exist_ok=True)
+        
         try:
             async with async_playwright() as p:
-                browser = await p.chromium.launch(headless=True)
-                # Diamond Grade: Connect to persistent profile if exists to bypass login
-                context = await browser.new_context(
+                # Diamond Grade: Connect to persistent profile to bypass login
+                context = await p.chromium.launch_persistent_context(
+                    user_data_dir=user_data_dir,
+                    headless=True,
+                    args=["--disable-blink-features=AutomationControlled"],
                     user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
-                page = await context.new_page()
+                
+                # Evasion Script
+                await context.add_init_script("""
+                    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                """)
+                
+                page = context.pages[0] if context.pages else await context.new_page()
                 
                 await page.goto(job_url, wait_until="domcontentloaded")
                 await asyncio.sleep(random.uniform(2, 5)) 
@@ -125,63 +139,89 @@ class ApplyService:
                     # WTTJ Apply flow
                     apply_btn = await page.query_selector("button:has-text('Postuler')")
                     if apply_btn:
-                        await apply_btn.click()
-                        await asyncio.sleep(1)
-                        # Upload PDF
-                        file_input = await page.wait_for_selector("input[type='file']")
-                        await file_input.set_input_files(cv_path)
-                        await asyncio.sleep(2)
-                        # Submit
-                        submit_btn = await page.query_selector("button[type='submit']")
-                        if submit_btn:
-                            await submit_btn.click()
-                            await page.wait_for_timeout(3000)
-                            await browser.close()
-                            return "APPLIED"
+                        from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+                        try:
+                            await apply_btn.click(timeout=5000)
+                            await asyncio.sleep(1)
+                            # Upload PDF
+                            file_input = await page.wait_for_selector("input[type='file']", timeout=5000)
+                            await file_input.set_input_files(cv_path)
+                            await asyncio.sleep(2)
+                            # Submit
+                            submit_btn = await page.query_selector("button[type='submit']")
+                            if submit_btn:
+                                await submit_btn.click(timeout=5000)
+                                await page.wait_for_timeout(3000)
+                                await context.close()
+                                return "APPLIED"
+                        except PlaywrightTimeoutError:
+                            logger.warning("Timeout during WTTJ form.")
                             
                 elif source == "apec":
                     # APEC Apply flow
                     apply_btn = await page.query_selector("button:has-text('Postuler')")
                     if apply_btn:
-                        await apply_btn.click()
-                        await asyncio.sleep(2)
-                        
-                        file_input = await page.wait_for_selector("input[type='file']")
-                        await file_input.set_input_files(cv_path)
-                        
-                        submit_btn = await page.query_selector("button:has-text('Envoyer')")
-                        if submit_btn:
-                            await submit_btn.click()
-                            await page.wait_for_timeout(3000)
-                            await browser.close()
-                            return "APPLIED"
+                        from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+                        try:
+                            await apply_btn.click(timeout=5000)
+                            await asyncio.sleep(2)
+                            
+                            file_input = await page.wait_for_selector("input[type='file']", timeout=5000)
+                            await file_input.set_input_files(cv_path)
+                            
+                            submit_btn = await page.query_selector("button:has-text('Envoyer')")
+                            if submit_btn:
+                                await submit_btn.click(timeout=5000)
+                                await page.wait_for_timeout(3000)
+                                await context.close()
+                                return "APPLIED"
+                        except PlaywrightTimeoutError:
+                            logger.warning("Timeout during APEC form.")
                             
                 elif source == "linkedin":
+                    if self.tracking:
+                        todays_applied = await self.tracking.get_daily_count("linkedin")
+                        if todays_applied >= 20:
+                            logger.warning(f"LinkedIn Daily Limit (20) reached. Skipping {job_url}")
+                            await context.close()
+                            return "FAILED_RATE_LIMIT"
+                    
                     # LinkedIn Easy Apply flow
                     apply_btn = await page.query_selector("button.jobs-apply-button")
                     if apply_btn:
-                        await apply_btn.click()
-                        await asyncio.sleep(1)
-                        # Handle multi-step modal
-                        while True:
-                            next_btn = await page.query_selector("button:has-text('Next')")
-                            review_btn = await page.query_selector("button:has-text('Review')")
-                            submit_btn = await page.query_selector("button:has-text('Submit')")
-                            
-                            if submit_btn:
-                                await submit_btn.click()
-                                await page.wait_for_timeout(3000)
-                                await browser.close()
-                                return "APPLIED"
-                            elif review_btn:
-                                await review_btn.click()
-                            elif next_btn:
-                                await next_btn.click()
-                            else:
-                                break
-                            await asyncio.sleep(random.uniform(1, 2))
+                        from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+                        try:
+                            await apply_btn.click(timeout=5000)
+                            await asyncio.sleep(1)
+                            # Handle multi-step modal
+                            while True:
+                                # CIRCUIT BREAKER: Check for generic bot blocks, warnings, or CAPTCHA
+                                captcha = await page.query_selector("iframe[src*='captcha'], iframe[src*='challenge'], #captcha-internal")
+                                if captcha:
+                                    logger.critical(f"LinkedIn WARNING SIGNAL trigger at {job_url}! Circuit Breaker active.")
+                                    await context.close()
+                                    raise Exception("LinkedIn Bot Block / CAPTCHA Detected.")
+                                    
+                                next_btn = await page.query_selector("button:has-text('Next')")
+                                review_btn = await page.query_selector("button:has-text('Review')")
+                                submit_btn = await page.query_selector("button:has-text('Submit')")
+                                
+                                if submit_btn:
+                                    await submit_btn.click(timeout=5000)
+                                    await page.wait_for_timeout(3000)
+                                    await context.close()
+                                    return "APPLIED"
+                                elif review_btn:
+                                    await review_btn.click()
+                                elif next_btn:
+                                    await next_btn.click()
+                                else:
+                                    break
+                                await asyncio.sleep(random.uniform(1, 2))
+                        except PlaywrightTimeoutError:
+                            logger.warning("Timeout during LinkedIn form. Skipping.")
 
-                await browser.close()
+                await context.close()
                 return "FAILED_BUTTON_NOT_FOUND"
                 
         except Exception as e:

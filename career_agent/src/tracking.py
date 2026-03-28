@@ -36,11 +36,44 @@ class TrackingService:
                     timestamp TEXT
                 )
             """)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS audit_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id TEXT,
+                    action TEXT,
+                    details TEXT,
+                    timestamp TEXT
+                )
+            """)
             await db.execute("CREATE INDEX IF NOT EXISTS idx_fingerprint ON applications(fingerprint)")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_audit_job ON audit_log(job_id)")
             await db.commit()
         
         self._initialized = True
         logger.info(f"Tracking DB Initialized at {self.db_path}")
+
+    async def log_action(self, job_id: str, action: str, details: str = ""):
+        """Phase 5: Append an action to the immutable audit log."""
+        await self._ensure_db()
+        now = datetime.now().isoformat()
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute(
+                "INSERT INTO audit_log (job_id, action, details, timestamp) VALUES (?, ?, ?, ?)",
+                (job_id, action, details, now)
+            )
+            await db.commit()
+
+    async def get_daily_count(self, source: str) -> int:
+        """Get the number of APPLIED jobs today for a specific source."""
+        await self._ensure_db()
+        today = datetime.now().strftime("%Y-%m-%d")
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute(
+                "SELECT count(*) FROM applications WHERE source = ? AND timestamp LIKE ? AND status = 'APPLIED'",
+                (source, f"{today}%")
+            ) as cursor:
+                result = await cursor.fetchone()
+                return result[0] if result else 0
 
     @staticmethod
     def generate_fingerprint(title: str, company: str) -> str:
@@ -86,6 +119,10 @@ class TrackingService:
                 metadata.get("source"),
                 now
             ))
+            await db.execute(
+                "INSERT INTO audit_log (job_id, action, details, timestamp) VALUES (?, ?, ?, ?)",
+                (job_id, "STATUS_UPDATE", f"Status changed to {status}", now)
+            )
             await db.commit()
         logger.info(f"Tracking UPSERT: {metadata.get('title')} -> {status}")
 

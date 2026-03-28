@@ -59,8 +59,8 @@ class Scraper:
                 "--disable-setuid-sandbox",
                 "--disable-infobars",
                 "--window-position=0,0",
-                "--ignore-certifcate-errors",
-                "--ignore-certifcate-errors-spki-list",
+                "--ignore-certificate-errors",
+                "--ignore-certificate-errors-spki-list",
                 f"--user-agent={selected_ua}"
             ]
             
@@ -83,6 +83,11 @@ class Scraper:
                 java_script_enabled=True,
                 bypass_csp=True
             )
+            
+            # EXPERT: Mock webdriver missing detection
+            await self._context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            """)
             
             # EXPERT: Add specialized stealth headers
             await self._context.set_extra_http_headers({
@@ -205,29 +210,35 @@ class Scraper:
         if not sel: return []
         search_url = f"https://www.welcometothejungle.com/fr/jobs?query={query}&aroundQuery={location}"
         
+        if self._context:
+            return await self._scrape_wttj_with_context(self._context, search_url, sel, query, location)
+            
         async with self as managed:
-            page = await managed._context.new_page()
-            try:
-                self.logger.info(f"Stealth Search: WTTJ {query} in {location}")
-                await page.goto(search_url, wait_until="networkidle")
-                
-                cards = await page.query_selector_all(sel.get("job_card", "article"))
-                jobs = []
-                for card in cards[:15]:
-                    title_elem = await card.query_selector(sel.get("job_title", "h4"))
-                    url_elem = await card.query_selector(sel.get("job_url", "a"))
-                    if title_elem and url_elem:
-                        job_url = await url_elem.get_attribute("href")
-                        if job_url and not job_url.startswith("http"):
-                            job_url = f"https://www.welcometothejungle.com{job_url}"
-                        title_text = (await title_elem.inner_text()).strip()
-                        jobs.append(JobListing(id=job_url, title=title_text, url=job_url, source="wttj"))
-                return jobs
-            except Exception as e:
-                self.logger.error(f"WTTJ Search Fail: {type(e).__name__}")
-                return []
-            finally:
-                await page.close()
+            return await self._scrape_wttj_with_context(managed._context, search_url, sel, query, location)
+
+    async def _scrape_wttj_with_context(self, context: BrowserContext, url: str, sel: Dict, query: str, location: str) -> List[JobListing]:
+        page = await context.new_page()
+        try:
+            self.logger.info(f"Stealth Search: WTTJ {query} in {location}")
+            await page.goto(url, wait_until="networkidle")
+            
+            cards = await page.query_selector_all(sel.get("job_card", "article"))
+            jobs = []
+            for card in cards[:15]:
+                title_elem = await card.query_selector(sel.get("job_title", "h4"))
+                url_elem = await card.query_selector(sel.get("job_url", "a"))
+                if title_elem and url_elem:
+                    job_url = await url_elem.get_attribute("href")
+                    if job_url and not job_url.startswith("http"):
+                        job_url = f"https://www.welcometothejungle.com{job_url}"
+                    title_text = (await title_elem.inner_text()).strip()
+                    jobs.append(JobListing(id=job_url, title=title_text, url=job_url, source="wttj"))
+            return jobs
+        except Exception as e:
+            self.logger.error(f"WTTJ Search Fail: {type(e).__name__}")
+            return []
+        finally:
+            await page.close()
 
     async def search_apec_jobs(self, query: str, location: str = "France") -> List[JobListing]:
         sel = self.selectors.get("apec", {})
@@ -235,29 +246,35 @@ class Scraper:
         # APEC uses specific query params for candidate search
         search_url = f"https://www.apec.fr/candidat/recherche-emploi.html/liste-offres?motsCles={query}&lieux={location}"
         
+        if self._context:
+            return await self._scrape_apec_with_context(self._context, search_url, sel, query, location)
+            
         async with self as managed:
-            page = await managed._context.new_page()
-            try:
-                self.logger.info(f"Stealth Search: APEC {query} in {location}")
-                await page.goto(search_url, wait_until="networkidle")
-                
-                cards = await page.query_selector_all(sel.get("job_card", ".container-resultat"))
-                jobs = []
-                for card in cards[:15]:
-                    title_elem = await card.query_selector(sel.get("job_title", ".card-title"))
-                    url_elem = await card.query_selector(sel.get("job_url", "a"))
-                    if title_elem and url_elem:
-                        job_url = await url_elem.get_attribute("href")
-                        if job_url and not job_url.startswith("http"):
-                            job_url = f"https://www.apec.fr{job_url}"
-                        title_text = (await title_elem.inner_text()).strip()
-                        jobs.append(JobListing(id=job_url, title=title_text, url=job_url, source="apec"))
-                return jobs
-            except Exception as e:
-                self.logger.error(f"APEC Search Fail: {type(e).__name__}")
-                return []
-            finally:
-                await page.close()
+            return await self._scrape_apec_with_context(managed._context, search_url, sel, query, location)
+
+    async def _scrape_apec_with_context(self, context: BrowserContext, url: str, sel: Dict, query: str, location: str) -> List[JobListing]:
+        page = await context.new_page()
+        try:
+            self.logger.info(f"Stealth Search: APEC {query} in {location}")
+            await page.goto(url, wait_until="networkidle")
+            
+            cards = await page.query_selector_all(sel.get("job_card", ".container-resultat"))
+            jobs = []
+            for card in cards[:15]:
+                title_elem = await card.query_selector(sel.get("job_title", ".card-title"))
+                url_elem = await card.query_selector(sel.get("job_url", "a"))
+                if title_elem and url_elem:
+                    job_url = await url_elem.get_attribute("href")
+                    if job_url and not job_url.startswith("http"):
+                        job_url = f"https://www.apec.fr{job_url}"
+                    title_text = (await title_elem.inner_text()).strip()
+                    jobs.append(JobListing(id=job_url, title=title_text, url=job_url, source="apec"))
+            return jobs
+        except Exception as e:
+            self.logger.error(f"APEC Search Fail: {type(e).__name__}")
+            return []
+        finally:
+            await page.close()
 
     async def _scrape_linkedin_with_context(self, context: BrowserContext, url: str, sel: Dict, query: str, location: str) -> List[JobListing]:
         page = await context.new_page()

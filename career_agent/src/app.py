@@ -36,7 +36,7 @@ class PhoenixApp:
         self.memory = MemoryService(brain_path=brain_path)
         self.tracking = TrackingService(brain_path=brain_path)
         self.document = PDFService()
-        self.apply = ApplyService(cycle_id=cycle_id)
+        self.apply = ApplyService(cycle_id=cycle_id, brain_path=brain_path)
         self.scraper = Scraper(brain_path=brain_path, alerter=self.alerter, cycle_id=cycle_id)
         self.hunter = HunterService(brain_path=brain_path, cycle_id=cycle_id)
         self.tailor = TailorService(brain_path=brain_path, cycle_id=cycle_id)
@@ -87,7 +87,9 @@ class PhoenixApp:
                     return
 
                 # 2. Score (AI Alignment)
-                score_record = await self.hunter.score_job(jd_text, job.url)
+                # EXPERT: Pass full JobListing object as required by HunterService
+                job.description = jd_text
+                score_record = await self.hunter.score_job(job)
                 
                 if score_record.recommendation == "SKIP":
                     self.logger.info(f"SKIP ({score_record.score}): {job.title} - {score_record.reasoning}")
@@ -98,6 +100,16 @@ class PhoenixApp:
                 self.logger.info(f"DIAMOND MATCH ({score_record.score}): {job.title}. Tailoring...")
                 # EXPERT: Pass full score_record object for intelligence sharing
                 letter = await self.tailor.customize_letter(jd_text, score_record)
+                
+                # APPLY-05: Integrate suggested_edits
+                if letter.suggested_edits:
+                    self.logger.info(f"Tailor Suggested Edits for {job.title}: {', '.join(letter.suggested_edits)}")
+                    
+                # APPLY-04: Validation Gate
+                if not letter.body or len(letter.body) < 100 or "[Company]" in letter.body or "[Company Name]" in letter.body:
+                    self.logger.warning(f"Validation Gate Failed for {job.title}. Skipping apply.")
+                    await self.tracking.upsert_application(job.id, fingerprint, "VALIDATION_FAILED", job.__dict__, score=score_record.score)
+                    return
                 
                 # 4. Persistence
                 job_id = self.memory._generate_uuid(job.url)

@@ -22,6 +22,7 @@ from src.followup import FollowUpService
 from src.alerter import AlertService
 from src.nego import NegotiatorService
 from src.logger import configure_logging, get_logger
+from src.research import ResearchService
 
 # Initialize root logging
 configure_logging()
@@ -100,8 +101,9 @@ async def scheduled_followup():
             draft = await followup.draft_followup(job)
             # EXPERT: In a real prod environment, this would hit /relance or email
             # For now, we update the state and alert the user
-            await tracking.upsert_application(job['id'], job['fingerprint'], 'FOLLOWED_UP', job)
-            await alerter.send_info(f"📬 Autonomous Relance for {job['title']} [{job['company']}] drafted and queued.")
+            fingerprint = job.get('fingerprint') or tracking.generate_fingerprint(job.get('title', ''), job.get('company', ''))
+            await tracking.upsert_application(job['id'], fingerprint, 'FOLLOWED_UP', job)
+            await alerter.send_info(f"📬 Autonomous Relance for {job.get('title', 'Unknown')} [{job.get('company', 'Unknown')}] drafted and queued.")
         except Exception as e:
             logger.error(f"Follow-up Error for {job['id']}: {e}")
 
@@ -248,7 +250,7 @@ class StatusUpdateRequest(BaseModel):
     status: str = Field(..., description="Target status, e.g., INTERVIEW, OFFER, REJECTED")
 
 @app.post("/applications/{job_id}/status", dependencies=[Depends(verify_nemo_key)])
-async def update_job_status(job_id: str, request: StatusUpdateRequest):
+async def update_job_status(job_id: str, request: StatusUpdateRequest, background_tasks: BackgroundTasks):
     """Phase 9: Telegram transition webhook matching explicit explicit-confirmation."""
     brain_path = os.environ.get("BRAIN_PATH", "/app/brain")
     tracking = TrackingService(brain_path=brain_path)
@@ -281,6 +283,13 @@ async def update_job_status(job_id: str, request: StatusUpdateRequest):
             benchmarks = await nego.get_benchmarks(role=job_data.get("title", "Tech Role"), location="France")
             await alerter.send_alert("NemoClaw Negotiator", benchmarks)
             
+            if request.status.upper() == "INTERVIEW":
+                background_tasks.add_task(
+                    _background_interview_prep,
+                    job_data.get("company", "Unknown Company"),
+                    job_data.get("title", "Unknown Role")
+                )
+            
         return {"status": "success", "job_id": job_id, "new_state": request.status}
     except Exception as e:
         logger.error(f"Status Update failure: {e}")
@@ -297,4 +306,61 @@ async def get_negotiation_benchmarks(role: str, location: str = "France"):
         return {"status": "success", "benchmarks": benchmarks}
     except Exception as e:
         logger.error(f"Nego GET failure: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def _background_interview_prep(company_name: str, job_title: str):
+    """Background task to scrape DDG and push a briefing to Telegram."""
+    try:
+        brain_path = os.environ.get("BRAIN_PATH", "/app/brain")
+        research_service = ResearchService(brain_path=brain_path)
+        alerter = AlertService()
+        
+        briefing = await research_service.generate_briefing(company_name, job_title)
+        
+        msg = f"🔍 INTERVIEW DOSSIER: {company_name}\n\n"
+        msg += f"🏢 Snapshot:\n{briefing.company_snapshot}\n\n"
+        msg += f"⭐ The 'Why You':\n{briefing.the_why_you}\n\n"
+        msg += "⚠️ Trap Questions:\n- " + "\n- ".join(briefing.trap_questions) + "\n\n"
+        msg += "🎯 Ask Them:\n- " + "\n- ".join(briefing.your_turn)
+        
+        await alerter._push(msg)
+    except Exception as e:
+        logger.error(f"Background interview prep failed: {e}")
+
+@app.get("/applications/{job_id}/prepare", dependencies=[Depends(verify_nemo_key)])
+async def prepare_for_interview(job_id: str, background_tasks: BackgroundTasks):
+    """Phase 10: Explicit command to trigger interview prep."""
+    brain_path = os.environ.get("BRAIN_PATH", "/app/brain")
+    tracking = TrackingService(brain_path=brain_path)
+    
+    try:
+        import aiosqlite
+        async with aiosqlite.connect(tracking.db_path) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute("SELECT * FROM applications WHERE id = ?", (job_id,)) as cursor:
+                row = await cursor.fetchone()
+                if not row:
+                    raise HTTPException(status_code=404, detail="Job application not found.")
+                job_data = dict(row)
+                
+        background_tasks.add_task(
+            _background_interview_prep,
+            job_data.get("company", "Unknown Company"),
+            job_data.get("title", "Unknown Role")
+        )
+        return {"status": "accepted", "message": f"Interview briefing generation started for {job_id}."}
+    except Exception as e:
+        logger.error(f"Prepare GET failure: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/research", dependencies=[Depends(verify_nemo_key)])
+async def research_company(company: str, role: Optional[str] = "General"):
+    """Phase 10: Ad-hoc web search and generated briefing."""
+    try:
+        brain_path = os.environ.get("BRAIN_PATH", "/app/brain")
+        research_service = ResearchService(brain_path=brain_path)
+        briefing = await research_service.generate_briefing(company, role)
+        return {"status": "success", "data": briefing.model_dump()}
+    except Exception as e:
+        logger.error(f"Research GET failure: {e}")
         raise HTTPException(status_code=500, detail=str(e))

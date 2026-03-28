@@ -78,3 +78,55 @@ tools:
     url: http://career-agent:8001/trigger
     headers:
       Authorization: "Bearer ${NEMO_API_KEY}"
+
+  - name: get_benchmarks
+    description: >
+      Retrieve salary benchmarks and market averages for a specific job title and location.
+      Trigger before negotiations to understand what to aim for.
+    method: GET
+    url: http://career-agent:8001/nego
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+    parameters:
+      role:
+        type: string
+        required: true
+        description: "Target job title, e.g. 'Software Engineer'"
+      location:
+        type: string
+        required: false
+        default: "France"
+        description: "Target location for the role"
+
+  - name: prepare_for_interview
+    description: >
+      Generate a comprehensive 'Interview Briefing' for a specific job application.
+      The dossier includes company news, strategy, and predicted interview questions.
+    method: GET
+    url: http://career-agent:8001/applications/{job_id}/prepare
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+    parameters:
+      job_id:
+        type: string
+        required: true
+        description: "The unique ID of the job application"
+
+  - name: research_company
+    description: >
+      Conduct ad-hoc web research on a specific company and generate a dossier
+      for a specific role. Triggers a web search using DuckDuckGo.
+    method: GET
+    url: http://career-agent:8001/research
+    headers:
+      Authorization: "Bearer ${NEMO_API_KEY}"
+    parameters:
+      company:
+        type: string
+        required: true
+        description: "The name of the target company"
+      role:
+        type: string
+        required: false
+        default: "General"
+        description: "The specific role or job title to tailor the briefing towards"

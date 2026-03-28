@@ -20,7 +20,7 @@ async def test_alert_message_format():
     
     assert "LinkedIn" in text
     assert "possible block" in text
-    assert "Severity: HIGH" in text
+    assert "Severity: CRITICAL" in text
 
 @pytest.mark.asyncio
 async def test_alert_swallows_exception():

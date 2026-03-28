@@ -17,11 +17,11 @@ class ProjectConfig:
             # Diamond Grade: Initialize attributes to safe defaults to avoid AttributeError
             cls._instance.brain_path = None
             cls._instance.bio_context = ""
-            self._instance.target_specs = {}
-            self._instance.model_id = os.getenv("MODEL_ID", "gemini-1.5-flash")
+            cls._instance.target_specs = {}
+            cls._instance.model_id = os.getenv("MODEL_ID", "gemini-1.5-flash")
             # Phase 8: Hard Legal Gates for Autonomous Submission
-            self._instance.legal_gate_approved = os.getenv("LEGAL_GATE_APPROVED", "false").lower() == "true"
-            self._instance.auto_apply_enabled = os.getenv("AUTO_APPLY_ENABLED", "false").lower() == "true"
+            cls._instance.legal_gate_approved = os.getenv("LEGAL_GATE_APPROVED", "false").lower() == "true"
+            cls._instance.auto_apply_enabled = os.getenv("AUTO_APPLY_ENABLED", "false").lower() == "true"
             
         if brain_path:
             cls._instance.initialize(brain_path)
